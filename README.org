@@ -1,8 +1,8 @@
 * geek contract
 
-| Project Stage | Issues                                                               | Issue resolve time                                                         |
-|---------------+----------------------------------------------------------------------+----------------------------------------------------------------------------|
-| [[https://github.com/trontech-link/geek-contract/wiki][https://img.shields.io/badge/Project%20Stage-Development-yellowgreen.svg]]        | [[http://isitmaintained.com/project/trontech-link/geek-contract][http://isitmaintained.com/badge/open/trontech-link/geek-contract.svg]] | [[http://isitmaintained.com/project/trontech-link/geek-contract][http://isitmaintained.com/badge/resolution/trontech-link/geek-contract.svg]] |
+| Project Stage                                                            | CI | Issues                                                               | Issue resolve time                                                         |
+|--------------------------------------------------------------------------+----+----------------------------------------------------------------------+----------------------------------------------------------------------------|
+| [[https://github.com/trontech-link/geek-contract/wiki][https://img.shields.io/badge/Project%20Stage-Development-yellowgreen.svg]] | [[https://github.com/trontech-link/geek-contract/actions][https://github.com/trontech-link/geek-contract/actions/workflows/blank.yml/badge.svg]]             | [[http://isitmaintained.com/project/trontech-link/geek-contract][http://isitmaintained.com/badge/open/trontech-link/geek-contract.svg]] | [[http://isitmaintained.com/project/trontech-link/geek-contract][http://isitmaintained.com/badge/resolution/trontech-link/geek-contract.svg]] |
 
 * Project architecture
 
