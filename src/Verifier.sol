@@ -1,30 +1,53 @@
-// SPDX-License-Identifer: UNLICENSED
+// SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.6;
 
-import "https://github.com/Arachnid/solidity-stringutils/blob/master/src/strings.sol";
-
 contract Verifier {
-    using strings for *;
-
     struct TestCase {
-        bytes32 input;
-        bytes32 output;
+        uint256 input;
+        uint256 output;
     }
 
     address payable public owner;
-    mapping(uint256 => address) public registeredQuestionList;
+    address[] public registeredQuestionList;
     mapping(uint256 => address) public prizePool;
     mapping(uint256 => address) public winner;
-    uint256 questionId;
+
+    event TestFailed(
+        uint256 testCaseId,
+        TestCase testCase,
+        uint256 expected,
+        uint256 actual
+    );
+    event TestPassed(
+        uint256 testCaseId,
+        TestCase testCase,
+        uint256 expected,
+        uint256 actual
+    );
 
     constructor() {
         owner = payable(msg.sender);
-        questionId = 0;
     }
 
     modifier onlyOwner() {
         require(msg.sender == owner, "Not owner");
         _;
+    }
+
+    function _getTestCase(uint256 _questionId)
+        private
+        returns (TestCase[] memory)
+    {
+        // Get contract address of the question that need to be verified
+        address questionAddr = registeredQuestionList[_questionId];
+
+        (bool testCaseSuccess, bytes memory descriptionData) = questionAddr
+            .call(abi.encodeWithSignature("getTestCases()"));
+        require(testCaseSuccess, "Get test cases failed.");
+
+        TestCase[] memory testCases = abi.decode(descriptionData, (TestCase[]));
+
+        return testCases;
     }
 
     function verify(uint256 _questionId, address answerAddr)
@@ -33,51 +56,34 @@ contract Verifier {
         onlyOwner
         returns (bool)
     {
-        // Get contract address of the question that need to be verified
-        address questionAddr = registeredQuestionList[_questionId];
-
-        // Get the encodede testCase data
-        (, bytes memory testCaseData) = questionAddr.call(
-            abi.encodeWithSignature("testCases()")
-        );
-
-        // Decode the testCase data to get the test cases
-        TestCase[] memory testCases = abi.decode(testCaseData, (TestCase[]));
+        TestCase[] memory testCases = _getTestCase(_questionId);
 
         uint256 arrLength = testCases.length;
 
         for (uint256 i = 0; i < arrLength; i++) {
             bytes memory payload = abi.encodeWithSignature(
-                "main()",
-                _parseTestCaseInput(testCases[i].input)
+                "main(uint256)",
+                testCases[i].input
             );
-            (, bytes memory answerData) = answerAddr.call(payload);
-            if (testCases[i].output != abi.decode(answerData, (bytes32))) {
+
+            (bool answerSuccess, bytes memory answerData) = answerAddr.call(
+                payload
+            );
+            require(answerSuccess, "Answer call failed.");
+            uint256 expected = testCases[i].output;
+            uint256 actual = abi.decode(answerData, (uint256));
+            if (expected != actual) {
+                emit TestFailed(i, testCases[i], expected, actual);
                 return false;
+            } else {
+                emit TestPassed(i, testCases[i], expected, actual);
             }
         }
         return true;
     }
 
-    function _parseTestCaseInput(string _input)
-        private
-        view
-        returns (uint256[])
-    {
-        strings.slice memory stringSlice = _input.toSlice();
-        strings.slice memory delimeterSlice = ",".toSlice();
-        string[] memory strings = new string[](
-            stringSlice.count(delimeterSlice)
-        );
-        for (uint256 i = 0; i < strings.length; i++) {
-            strings[i] = stringSlice.split(delim).toString();
-        }
-        return strings;
-    }
-
     function registerQuestion(address questionAddr) public payable {
-        registeredQuestionList[questionId] = questionAddr;
-        questionId++;
+        registeredQuestionList.push(questionAddr);
     }
 
     function rewardWinner(uint256 _questionId, address payable _winnerAddr)

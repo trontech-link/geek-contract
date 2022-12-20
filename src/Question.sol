@@ -3,7 +3,7 @@ pragma solidity ^0.8.6;
 
 contract Question {
     struct TestCase {
-        uint256[] input;
+        uint256 input;
         uint256 output;
     }
 
@@ -12,6 +12,7 @@ contract Question {
     mapping(uint256 => address) prizePool;
     mapping(uint256 => address) winner;
     TestCase[] public testCases;
+    TestCase public tc;
 
     constructor() {
         owner = payable(msg.sender);
@@ -30,11 +31,18 @@ contract Question {
         description = _description;
     }
 
-    function addTestCase(uint256[] memory _input, uint256 _output)
+    function addTestCase(uint256 _input, uint256 _output)
         public
         onlyOwner
+        returns (TestCase[] memory)
     {
         TestCase memory testCase = TestCase(_input, _output);
+        tc = testCase;
         testCases.push(testCase);
+        return testCases;
+    }
+
+    function getTestCases() public view returns (TestCase[] memory) {
+        return testCases;
     }
 }
