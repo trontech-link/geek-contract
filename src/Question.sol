@@ -9,8 +9,7 @@ contract Question {
 
     address payable public owner;
     string public description;
-    mapping(uint256 => address) prizePool;
-    mapping(uint256 => address) winner;
+    address public winner;
     TestCase[] public testCases;
     TestCase public tc;
 
