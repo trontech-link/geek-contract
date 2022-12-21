@@ -1,30 +1,27 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.6;
 
-contract Question {
-    struct TestCase {
-        uint256 input;
-        uint256 output;
-    }
+import "./IQuestion.sol";
 
+contract Question is IQuestion {
     address payable public owner;
     string public description;
-    address public winner;
+    uint256 public winnerShare; // in percent
     TestCase[] public testCases;
-    TestCase public tc;
 
     constructor() {
         owner = payable(msg.sender);
+        winnerShare = 80; // Winner share is 80% by default
     }
 
     modifier onlyOwner() {
-        require(msg.sender == owner);
+        require(msg.sender == owner, "Not Owner");
         _;
     }
 
     function setDescription(string memory _description)
         public
-        payable
+        override
         onlyOwner
     {
         description = _description;
@@ -32,16 +29,18 @@ contract Question {
 
     function addTestCase(uint256 _input, uint256 _output)
         public
+        override
         onlyOwner
-        returns (TestCase[] memory)
     {
         TestCase memory testCase = TestCase(_input, _output);
-        tc = testCase;
         testCases.push(testCase);
+    }
+
+    function getTestCases() public view override returns (TestCase[] memory) {
         return testCases;
     }
 
-    function getTestCases() public view returns (TestCase[] memory) {
-        return testCases;
+    function setWinnerShare(uint256 _winnerShare) public override {
+        winnerShare = _winnerShare;
     }
 }

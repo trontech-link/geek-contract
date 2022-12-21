@@ -4,7 +4,7 @@ pragma solidity ^0.8.6;
 
 import "./IAnswer.sol";
 
-contract Answer is IAnswer {
+contract WrongAnswer is IAnswer {
     address payable public owner;
 
     constructor() {
@@ -12,6 +12,6 @@ contract Answer is IAnswer {
     }
 
     function main(uint256 _input) public pure override returns (uint256) {
-        return _input * 2;
+        return _input * 10;
     }
 }
