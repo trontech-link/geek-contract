@@ -3,8 +3,8 @@ pragma solidity ^0.8.6;
 
 contract Verifier {
     struct TestCase {
-        uint256 input;
-        uint256 output;
+        bytes[] input;
+        bytes output;
     }
 
     address payable public owner;
@@ -15,15 +15,16 @@ contract Verifier {
     event TestFailed(
         uint256 testCaseId,
         TestCase testCase,
-        uint256 expected,
-        uint256 actual
+        bytes expected,
+        bytes actual
     );
     event TestPassed(
         uint256 testCaseId,
         TestCase testCase,
-        uint256 expected,
-        uint256 actual
+        bytes expected,
+        bytes actual
     );
+    event WinnerAssigned(uint256 questionId, address winner);
     event Rewarded(uint256 questionId, address winner, uint256 rewardToWinner);
 
     constructor() {
@@ -56,7 +57,7 @@ contract Verifier {
 
         for (uint256 i = 0; i < arrLength; i++) {
             bytes memory payload = abi.encodeWithSignature(
-                "main(uint256)",
+                "main(bytes[])",
                 testCases[i].input
             );
 
@@ -64,10 +65,10 @@ contract Verifier {
 
             require(success, "Answer call failed.");
 
-            uint256 expected = testCases[i].output;
-            uint256 actual = abi.decode(data, (uint256));
+            bytes memory expected = testCases[i].output;
+            bytes memory actual = abi.decode(data, (bytes));
 
-            if (expected != actual) {
+            if (bytes32(expected) != bytes32(actual)) {
                 emit TestFailed(i, testCases[i], expected, actual);
                 return false;
             } else {
@@ -79,6 +80,8 @@ contract Verifier {
 
         //Assign winner
         winner[_questionId] = answerOwner;
+
+        emit WinnerAssigned(_questionId, answerOwner);
 
         return true;
     }

@@ -19,20 +19,23 @@ contract Question is IQuestion {
         _;
     }
 
-    function setDescription(string memory _description)
-        public
-        override
-        onlyOwner
-    {
+    function setDescription(string memory _description) public onlyOwner {
         description = _description;
     }
 
-    function addTestCase(uint256 _input, uint256 _output)
-        public
-        override
-        onlyOwner
-    {
-        TestCase memory testCase = TestCase(_input, _output);
+    function addTestCase(
+        uint256 numOfInput,
+        string[] memory input,
+        string memory output
+    ) public override onlyOwner {
+        bytes[] memory inputBytes = new bytes[](numOfInput);
+        uint256 arrLength = input.length;
+        for (uint256 i = 0; i < arrLength; i++) {
+            inputBytes[i] = bytes(input[i]);
+        }
+        bytes memory outputBytes = bytes(output);
+        TestCase memory testCase = TestCase(inputBytes, outputBytes);
+
         testCases.push(testCase);
     }
 

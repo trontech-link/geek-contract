@@ -11,7 +11,13 @@ contract WrongAnswer is IAnswer {
         owner = payable(msg.sender);
     }
 
-    function main(uint256 _input) public pure override returns (uint256) {
-        return _input * 10;
+    function main(bytes[] memory input)
+        public
+        pure
+        override
+        returns (bytes memory)
+    {
+        // uint256 sum = uint256(bytes32(input[0])) - uint256(bytes32(input[1]));
+        return input[0];
     }
 }

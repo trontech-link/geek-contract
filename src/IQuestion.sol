@@ -3,13 +3,15 @@ pragma solidity ^0.8.6;
 
 interface IQuestion {
     struct TestCase {
-        uint256 input;
-        uint256 output;
+        bytes[] input;
+        bytes output;
     }
 
-    function setDescription(string memory _description) external;
-
-    function addTestCase(uint256 _input, uint256 _output) external;
+    function addTestCase(
+        uint256 numOfInput,
+        string[] memory _input,
+        string memory _output
+    ) external;
 
     function getTestCases() external view returns (TestCase[] memory);
 
