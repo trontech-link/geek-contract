@@ -25,15 +25,20 @@ contract Question is IQuestion {
 
     function addTestCase(
         uint256 numOfInput,
-        string[] memory input,
-        string memory output
-    ) public override onlyOwner {
+        uint256[] memory input,
+        uint256 output
+    )
+        public
+        // override
+        onlyOwner
+    {
         bytes[] memory inputBytes = new bytes[](numOfInput);
         uint256 arrLength = input.length;
         for (uint256 i = 0; i < arrLength; i++) {
-            inputBytes[i] = bytes(input[i]);
+            inputBytes[i] = abi.encode(input[i]);
         }
-        bytes memory outputBytes = bytes(output);
+        bytes memory outputBytes = abi.encode(output);
+
         TestCase memory testCase = TestCase(inputBytes, outputBytes);
 
         testCases.push(testCase);

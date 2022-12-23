@@ -51,6 +51,8 @@ contract Verifier {
         // Deposit send value to prize pool
         deposit(_questionId, msg.value);
 
+        bool isAllTestPassed = true;
+
         TestCase[] memory testCases = _getTestCase(_questionId);
 
         uint256 arrLength = testCases.length;
@@ -70,27 +72,30 @@ contract Verifier {
 
             if (bytes32(expected) != bytes32(actual)) {
                 emit TestFailed(i, testCases[i], expected, actual);
-                return false;
+                isAllTestPassed = false;
             } else {
                 emit TestPassed(i, testCases[i], expected, actual);
             }
         }
-        //Get answer's owner's address
-        address payable answerOwner = _getAnswerOwner(answerAddr);
 
-        //Assign winner
-        winner[_questionId] = answerOwner;
+        if (isAllTestPassed) {
+            //Get answer's owner's address
+            address payable answerOwner = _getAnswerOwner(answerAddr);
 
-        emit WinnerAssigned(_questionId, answerOwner);
+            //Assign winner
+            winner[_questionId] = answerOwner;
 
-        return true;
+            emit WinnerAssigned(_questionId, answerOwner);
+        }
+
+        return isAllTestPassed;
     }
 
     function registerQuestion(address questionAddr) public payable {
         require(msg.value >= 1, "Must pay at least 1 sun to register.");
         uint256 questionId = registeredQuestionList.length;
-        deposit(questionId, msg.value);
         registeredQuestionList.push(questionAddr);
+        deposit(questionId, msg.value);
     }
 
     function withdrawByWinner(uint256 _questionId) public {

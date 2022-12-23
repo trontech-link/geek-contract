@@ -3,7 +3,6 @@
 pragma solidity ^0.8.6;
 
 import "./IAnswer.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
 
 contract Answer is IAnswer {
     address payable public owner;
@@ -18,11 +17,10 @@ contract Answer is IAnswer {
         override
         returns (bytes memory)
     {
-        uint256 x = bytesToUint(input[0]);
-        uint256 y = bytesToUint(input[1]);
-        uint256 sum = x + y;
-        string memory s = Strings.toString(sum);
-        return bytes(s);
+        uint256 a = bytesToUint(input[0]);
+        uint256 b = bytesToUint(input[1]);
+        uint256 sum = a + b;
+        return abi.encode(sum);
     }
 
     function bytesToUint(bytes memory b) public pure returns (uint256) {
@@ -33,6 +31,6 @@ contract Answer is IAnswer {
                 uint256(uint8(b[i])) *
                 (2**(8 * (b.length - (i + 1))));
         }
-        return number - 48;
+        return number;
     }
 }
