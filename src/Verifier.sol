@@ -42,8 +42,8 @@ contract Verifier {
         returns (bool)
     {
         require(
-            prizePool[_questionId][0] > 0,
-            "This question had already been rewarded."
+            winner[_questionId] == address(0),
+            "There was already a winner for this question."
         );
 
         require(msg.value >= 1, "Must pay at least 1 sun to verify.");
@@ -56,6 +56,8 @@ contract Verifier {
         TestCase[] memory testCases = _getTestCase(_questionId);
 
         uint256 arrLength = testCases.length;
+
+        require(arrLength > 0, "No test cases available for this question.");
 
         for (uint256 i = 0; i < arrLength; i++) {
             bytes memory payload = abi.encodeWithSignature(
@@ -121,9 +123,11 @@ contract Verifier {
     function withdrawByQuestionOwner(uint256 _questionId) public {
         // Get question's owner's address
         address payable questionOwner = _getQuestionOwner(_questionId);
+        // Get winner's address
+        address payable winnerAddr = winner[_questionId];
 
         require(
-            winner[_questionId] != address(0) && questionOwner == msg.sender,
+            winnerAddr != address(0) && questionOwner == msg.sender,
             "Only question owner can take the prize."
         );
 
