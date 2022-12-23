@@ -9,7 +9,7 @@ contract Verifier {
 
     address payable public owner;
     address[] public registeredQuestionList;
-    mapping(uint256 => uint256) public prizePool;
+    mapping(uint256 => uint256[2]) public prizePool;
     mapping(uint256 => address payable) public winner;
 
     event TestFailed(
@@ -42,14 +42,14 @@ contract Verifier {
         returns (bool)
     {
         require(
-            prizePool[_questionId] > 0,
+            prizePool[_questionId][0] > 0,
             "This question had already been rewarded."
         );
 
         require(msg.value >= 1, "Must pay at least 1 sun to verify.");
 
         // Deposit send value to prize pool
-        prizePool[_questionId] += msg.value;
+        deposit(_questionId, msg.value);
 
         TestCase[] memory testCases = _getTestCase(_questionId);
 
@@ -87,34 +87,63 @@ contract Verifier {
     }
 
     function registerQuestion(address questionAddr) public payable {
-        require(msg.value > 1, "Must pay at least 1 sun to register.");
+        require(msg.value >= 1, "Must pay at least 1 sun to register.");
         uint256 questionId = registeredQuestionList.length;
-        prizePool[questionId] = msg.value;
+        deposit(questionId, msg.value);
         registeredQuestionList.push(questionAddr);
     }
 
-    function withdraw(uint256 _questionId) public {
+    function withdrawByWinner(uint256 _questionId) public {
         // Get winner's address
         address payable winnerAddr = winner[_questionId];
-        require(winnerAddr == msg.sender, "Only winner can take the reward.");
+        require(
+            winnerAddr != address(0) && winnerAddr == msg.sender,
+            "Only winner can take the prize."
+        );
 
-        // Get winner's share
-        uint256 winnerSahre = _getWinnerShare(_questionId);
-
-        // Calculate the reward amount to winner
-        uint256 rewardToWinner = (prizePool[_questionId] * winnerSahre) / 100;
+        // Get the reward amount to winner
+        uint256 rewardToWinner = prizePool[_questionId][0];
 
         // Deduct reward amount from prize pool
-        prizePool[_questionId] -= rewardToWinner;
+        prizePool[_questionId][0] = 0;
 
         // Send reward to the winner
         winnerAddr.transfer(rewardToWinner);
 
-        // Send the balance of the prize pool to the question owner
-        address payable questionOwner = _getQuestionOwner(_questionId);
-        questionOwner.transfer(prizePool[_questionId]);
-        prizePool[_questionId] = 0;
         emit Rewarded(_questionId, winnerAddr, rewardToWinner);
+    }
+
+    function withdrawByQuestionOwner(uint256 _questionId) public {
+        // Get question's owner's address
+        address payable questionOwner = _getQuestionOwner(_questionId);
+
+        require(
+            winner[_questionId] != address(0) && questionOwner == msg.sender,
+            "Only question owner can take the prize."
+        );
+
+        // Get the reward amount to question owner
+        uint256 rewardToQuestionOwner = prizePool[_questionId][1];
+
+        // Deduct reward amount from prize pool
+        prizePool[_questionId][1] = 0;
+
+        // Send reward to the question owner
+        questionOwner.transfer(rewardToQuestionOwner);
+    }
+
+    function deposit(uint256 _questionId, uint256 _amount) public {
+        require(_amount >= 1, "Deposit at least 1 sun");
+        uint256 winnerShare = _getWinnerShare(_questionId);
+
+        uint256 prizeForWinner = (_amount * winnerShare) / 100;
+        uint256 prizeForQuestionOwner = _amount - prizeForWinner;
+
+        // Add prize for winner
+        prizePool[_questionId][0] += prizeForWinner;
+
+        // Add prize for question owner
+        prizePool[_questionId][1] += prizeForQuestionOwner;
     }
 
     function _getTestCase(uint256 _questionId)
