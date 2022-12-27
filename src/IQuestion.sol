@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.6;
 
+import "./TestCase.sol";
+
 interface IQuestion {
-    struct TestCase {
-        bytes[] input;
-        bytes output;
-    }
+    function addTestCase(uint256[] memory _input, uint256[] memory _output)
+        external;
 
     function getTestCases() external view returns (TestCase[] memory);
 

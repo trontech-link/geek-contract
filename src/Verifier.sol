@@ -1,12 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.6;
 
-contract Verifier {
-    struct TestCase {
-        bytes[] input;
-        bytes output;
-    }
+import "./TestCase.sol";
 
+contract Verifier {
     address payable public owner;
     address[] public registeredQuestionList;
     mapping(uint256 => uint256[2]) public prizePool;
@@ -15,14 +12,14 @@ contract Verifier {
     event TestFailed(
         uint256 testCaseId,
         TestCase testCase,
-        bytes expected,
-        bytes actual
+        bytes[] expected,
+        bytes[] actual
     );
     event TestPassed(
         uint256 testCaseId,
         TestCase testCase,
-        bytes expected,
-        bytes actual
+        bytes[] expected,
+        bytes[] actual
     );
     event WinnerAssigned(uint256 questionId, address winner);
     event Rewarded(uint256 questionId, address winner, uint256 rewardToWinner);
@@ -43,7 +40,7 @@ contract Verifier {
     {
         require(
             winner[_questionId] == address(0),
-            "There was already a winner for this question."
+            "A winner had been assigned for this question."
         );
 
         require(msg.value >= 1, "Must pay at least 1 sun to verify.");
@@ -69,10 +66,12 @@ contract Verifier {
 
             require(success, "Answer call failed.");
 
-            bytes memory expected = testCases[i].output;
-            bytes memory actual = abi.decode(data, (bytes));
+            bytes[] memory expected = testCases[i].output;
+            bytes[] memory actual = abi.decode(data, (bytes[]));
 
-            if (bytes32(expected) != bytes32(actual)) {
+            if (
+                keccak256(abi.encode(expected)) != keccak256(abi.encode(actual))
+            ) {
                 emit TestFailed(i, testCases[i], expected, actual);
                 isAllTestPassed = false;
             } else {
