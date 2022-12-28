@@ -2,6 +2,8 @@
 pragma solidity ^0.8.6;
 
 import "./TestCase.sol";
+import "./Question.sol";
+import "./Answer.sol";
 
 contract Verifier {
     address payable public owner;
@@ -57,17 +59,8 @@ contract Verifier {
         require(arrLength > 0, "No test cases available for this question.");
 
         for (uint256 i = 0; i < arrLength; i++) {
-            bytes memory payload = abi.encodeWithSignature(
-                "main(bytes[])",
-                testCases[i].input
-            );
-
-            (bool success, bytes memory data) = answerAddr.call(payload);
-
-            require(success, "Answer call failed.");
-
             bytes[] memory expected = testCases[i].output;
-            bytes[] memory actual = abi.decode(data, (bytes[]));
+            bytes[] memory actual = Answer(answerAddr).main(testCases[i].input);
 
             if (
                 keccak256(abi.encode(expected)) != keccak256(abi.encode(actual))
@@ -156,56 +149,40 @@ contract Verifier {
 
     function _getTestCase(uint256 _questionId)
         private
+        view
         returns (TestCase[] memory)
     {
         // Get contract address of the question that need to be verified
         address questionAddr = registeredQuestionList[_questionId];
-
-        (bool success, bytes memory data) = questionAddr.call(
-            abi.encodeWithSignature("getTestCases()")
-        );
-        require(success, "Get test cases failed.");
-
-        TestCase[] memory testCases = abi.decode(data, (TestCase[]));
-
-        return testCases;
+        return Question(questionAddr).getTestCases();
     }
 
     function _getAnswerOwner(address answerAddr)
         private
+        view
         returns (address payable)
     {
-        (bool success, bytes memory data) = answerAddr.call(
-            abi.encodeWithSignature("owner()")
-        );
-        require(success, "Get answer owner failed.");
-
-        return abi.decode(data, (address));
+        return Answer(answerAddr).owner();
     }
 
     function _getQuestionOwner(uint256 _questionId)
         private
+        view
         returns (address payable)
     {
         address questionAddr = registeredQuestionList[_questionId];
 
-        (bool success, bytes memory data) = questionAddr.call(
-            abi.encodeWithSignature("owner()")
-        );
-        require(success, "Get question owner failed.");
+        address payable questionOwner = Question(questionAddr).owner();
 
-        return abi.decode(data, (address));
+        return questionOwner;
     }
 
-    function _getWinnerShare(uint256 _questionId) private returns (uint256) {
+    function _getWinnerShare(uint256 _questionId)
+        private
+        view
+        returns (uint256)
+    {
         address questionAddr = registeredQuestionList[_questionId];
-
-        (bool success, bytes memory data) = questionAddr.call(
-            abi.encodeWithSignature("winnerShare()")
-        );
-
-        require(success, "Get winner share failed.");
-
-        return abi.decode(data, (uint256));
+        return Question(questionAddr).winnerShare();
     }
 }
