@@ -9,9 +9,11 @@ contract Question is IQuestion {
     string public description;
     uint256 public winnerShare; // in percent
     TestCase[] internal testCases;
+    uint256 public testCaseCount;
 
     constructor(string memory _description, uint256 _winnerShare) {
         owner = payable(msg.sender);
+        testCaseCount = 0;
         description = _description;
         winnerShare = _winnerShare;
     }
@@ -45,6 +47,7 @@ contract Question is IQuestion {
         TestCase memory testCase = TestCase(inputBytes, outputBytes);
 
         testCases.push(testCase);
+        testCaseCount++;
     }
 
     function setTestCase(
@@ -71,6 +74,14 @@ contract Question is IQuestion {
 
     function getTestCases() public view override returns (TestCase[] memory) {
         return testCases;
+    }
+
+    function getTestCasesById(uint256 testCaseId)
+        public
+        view
+        returns (bytes[] memory, bytes[] memory)
+    {
+        return (testCases[testCaseId].input, testCases[testCaseId].output);
     }
 
     function setWinnerShare(uint256 _winnerShare) public override {
