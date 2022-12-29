@@ -40,6 +40,12 @@ contract Verifier {
         payable
         returns (bool)
     {
+        // Only answer owner can verify their answer
+        address payable answerOwner = _getAnswerOwner(answerAddr);
+        require(
+            msg.sender == answerOwner,
+            "Only answer owner can verify their answer"
+        );
         require(
             winner[_questionId] == address(0),
             "A winner had been assigned for this question."
@@ -73,9 +79,6 @@ contract Verifier {
         }
 
         if (isAllTestPassed) {
-            //Get answer's owner's address
-            address payable answerOwner = _getAnswerOwner(answerAddr);
-
             //Assign winner
             winner[_questionId] = answerOwner;
 
