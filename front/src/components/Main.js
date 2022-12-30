@@ -10,13 +10,7 @@ const Main = () => {
     <Layout>
       <AppHeader />
       <div className="main">
-        <div className="content">
-          {
-            match ? (<Outlet />) : (
-              <QuestionList />
-            )
-          }
-        </div>
+        <div className="content">{match ? <Outlet /> : <QuestionList />}</div>
       </div>
     </Layout>
   );

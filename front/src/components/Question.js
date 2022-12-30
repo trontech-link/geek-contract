@@ -1,13 +1,15 @@
 import { Button, Input, message } from "antd";
-import { tronObj } from "../utils/blockchain";
 import "../assets/styles/question.css";
 import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { setLastQuestionId } from "../app/rooterReducer";
+import { useParams } from "react-router-dom";
+import { checkQuestionId } from "../utils/commonUtils";
 
 const Question = () => {
-  let navigate = useNavigate();
-
+  const dispatch = useDispatch();
   const { questionId } = useParams();
+  const tronObj = useSelector((state) => state.rooter.tronObj);
   const verifierAddr = process.env.REACT_APP_verifier;
   const [questionInfo, setQuestionInfo] = useState({});
   const [answerAddress, setAnswerAddress] = useState("");
@@ -23,45 +25,39 @@ const Question = () => {
         // const verifierAbi = [{"entrys":[{"stateMutability":"Nonpayable","type":"Constructor"},{"inputs":[{"name":"questionId","type":"uint256"},{"name":"winner","type":"address"},{"name":"rewardToWinner","type":"uint256"}],"name":"Rewarded","type":"Event"},{"inputs":[{"name":"testCaseId","type":"uint256"},{"name":"testCase","type":"tuple"},{"name":"expected","type":"bytes[]"},{"name":"actual","type":"bytes[]"}],"name":"TestFailed","type":"Event"},{"inputs":[{"name":"testCaseId","type":"uint256"},{"name":"testCase","type":"tuple"},{"name":"expected","type":"bytes[]"},{"name":"actual","type":"bytes[]"}],"name":"TestPassed","type":"Event"},{"inputs":[{"name":"questionId","type":"uint256"},{"name":"winner","type":"address"}],"name":"WinnerAssigned","type":"Event"},{"inputs":[{"name":"_questionId","type":"uint256"},{"name":"_amount","type":"uint256"}],"name":"deposit","stateMutability":"Nonpayable","type":"Function"},{"outputs":[{"name":"count","type":"uint256"}],"name":"getQuestionCount","stateMutability":"view","type":"function"},{"outputs":[{"type":"address"}],"name":"owner","stateMutability":"view","type":"function"},{"outputs":[{"type":"uint256"}],"inputs":[{"type":"uint256"},{"type":"uint256"}],"name":"prizePool","stateMutability":"view","type":"function"},{"inputs":[{"name":"questionAddr","type":"address"}],"name":"registerQuestion","stateMutability":"Payable","type":"Function"},{"outputs":[{"type":"address"}],"inputs":[{"type":"uint256"}],"name":"registeredQuestionList","stateMutability":"view","type":"function"},{"outputs":[{"type":"bool"}],"inputs":[{"name":"_questionId","type":"uint256"},{"name":"answerAddr","type":"address"}],"name":"verify","stateMutability":"Payable","type":"Function"},{"outputs":[{"type":"address"}],"inputs":[{"type":"uint256"}],"name":"winner","stateMutability":"view","type":"function"},{"inputs":[{"name":"_questionId","type":"uint256"}],"name":"withdrawByQuestionOwner","stateMutability":"Nonpayable","type":"Function"},{"inputs":[{"name":"_questionId","type":"uint256"}],"name":"withdrawByWinner","stateMutability":"Nonpayable","type":"Function"}]}];
         // let verifier = await tronWeb.contract(verifierAbi, verifierAddr);
         let verifier = await tronWeb.contract().at(verifierAddr);
-        const questionCountHex = await verifier
-          .getQuestionCount()
-          .call({ _isConstant: true });
+        const questionCountHex = await verifier.getQuestionCount().call({ _isConstant: true });
         const questionCount = parseInt(tronWeb.toDecimal(questionCountHex));
         console.log("questionCount-----" + questionCount);
-        window.localStorage.setItem("lastQuestion", questionCount);
         if (questionCount > 0) {
-          const questionHex = await verifier
-            .registeredQuestionList(id)
-            .call({ _isConstant: true });
-          console.log("questionHex-----" + questionHex);
-          let questionObj = await tronWeb.contract().at(questionHex);
-          const desc = await questionObj
-            .description()
-            .call({ _isConstant: true });
-          console.log("desc-----" + desc);
-          const testCases = await questionObj.getTestCases().call();
-          console.log("testCases-----" + testCases);
-          let info = {
-            questionId: questionId,
-            questionAddress: {
-              hex: questionHex,
-              base58: tronWeb.address.fromHex(questionHex),
-            },
-            description: desc,
-            testCases: testCases,
-          };
-          setQuestionInfo(info);
-          console.log(`info is ${info}`);
+          if (checkQuestionId(id, questionCount)) {
+            const questionHex = await verifier.registeredQuestionList(id).call({ _isConstant: true });
+            console.log("questionHex-----" + questionHex);
+            let questionObj = await tronWeb.contract().at(questionHex);
+            const desc = await questionObj.description().call({ _isConstant: true });
+            console.log("desc-----" + desc);
+            const testCases = await questionObj.getTestCases().call();
+            console.log("testCases-----" + testCases);
+            let info = {
+              questionId: id,
+              questionAddress: {
+                hex: questionHex,
+                base58: tronWeb.address.fromHex(questionHex),
+              },
+              description: desc,
+              testCases: testCases,
+            };
+            setQuestionInfo(info);
+            console.log("info is ", JSON.stringify(info));
+          }
+          dispatch(setLastQuestionId(questionCount - 1));
         }
       } else {
-        window.localStorage.setItem("lastQuestion", 0);
+        dispatch(setLastQuestionId(0));
       }
-      window.localStorage.setItem("currentQuestion", parseInt(questionId));
-      window.localStorage.setItem("firstQuestion", 0);
     }
 
-    fetchQuestionInfo(questionId, window.tronWeb, verifierAddr);
-  }, [questionId, verifierAddr]);
+    fetchQuestionInfo(questionId, tronObj.tronWeb, verifierAddr);
+  }, [questionId, verifierAddr, tronObj, dispatch]);
 
   const handleVerify = async () => {
     console.log(questionId);
@@ -71,9 +67,7 @@ const Question = () => {
         message.info("please input answer address!");
         return;
       }
-      let _2usd = await tronWeb
-        .contract()
-        .at("TX3ueji8qE89vmykLor4QtdwXHQpePh8kD");
+      let _2usd = await tronWeb.contract().at("TX3ueji8qE89vmykLor4QtdwXHQpePh8kD");
       let totalSupply = await _2usd.totalSupply().call({ _isConstant: true });
       console.log("totalSupply: " + totalSupply);
     } else {
@@ -81,13 +75,7 @@ const Question = () => {
     }
   };
 
-  const handleWithdraw = async () => {
-    if (questionId === "1") {
-      navigate("/questions/0");
-    } else {
-      navigate("/questions/1");
-    }
-  };
+  const handleWithdraw = async () => {};
 
   const handleRegisterQuestion = async () => {
     const tronWeb = tronObj.tronWeb;
@@ -96,9 +84,7 @@ const Question = () => {
         message.info("please input question address!");
         return;
       }
-      let _2usd = await tronWeb
-        .contract()
-        .at("TX3ueji8qE89vmykLor4QtdwXHQpePh8kD");
+      let _2usd = await tronWeb.contract().at("TX3ueji8qE89vmykLor4QtdwXHQpePh8kD");
       let totalSupply = await _2usd.totalSupply().call({ _isConstant: true });
       console.log("totalSupply: " + totalSupply);
     } else {
@@ -120,15 +106,12 @@ const Question = () => {
       <div className="question-box">
         <div className="question-title">
           <h2 className="question-title-text">
-            Question{" "}
-            {questionInfo && questionInfo.questionId && questionInfo.questionId}
+            Question {questionInfo && questionInfo.questionId && questionInfo.questionId}
           </h2>
         </div>
         <div className="question-description">
           <p className="question-description-text">
-            {questionInfo &&
-              questionInfo.description &&
-              questionInfo.description}
+            {questionInfo && questionInfo.description && questionInfo.description}
           </p>
         </div>
         <div className="question-testcases">
