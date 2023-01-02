@@ -30,6 +30,10 @@
     margin: 0 1rem;
 }
 
+.header-center > .question-list > button:hover {
+    background-color: #fff;
+}
+
 .header-right {
 }
 

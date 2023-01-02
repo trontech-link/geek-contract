@@ -19,7 +19,7 @@ const router = createBrowserRouter([
 ]);
 
 function App() {
-  console.log("App.js currentAccount=" + useSelector(state => state.rooter.currentAccount));
+  console.log("App.js connectStatus=" + useSelector(state => state.rooter.connectStatus));
   return (
     <RouterProvider router={router} />
   );

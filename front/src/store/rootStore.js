@@ -1,9 +1,9 @@
 import { configureStore } from "@reduxjs/toolkit";
-import rooterReducer from "./rooterReducer";
+import rootReducer from "./rootReducer";
 
-export const store = configureStore({
+export const rootStore = configureStore({
   reducer: {
-    rooter: rooterReducer,
+    rooter: rootReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

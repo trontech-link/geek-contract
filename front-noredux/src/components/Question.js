@@ -1,12 +1,10 @@
 import { Button, Input, message } from "antd";
-import { tronObj } from "../utils/blockchain";
 import "../assets/styles/question.css";
 import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
+import { checkQuestionId } from "../utils/commonUtils";
 
 const Question = () => {
-  let navigate = useNavigate();
-
   const { questionId } = useParams();
   const verifierAddr = process.env.REACT_APP_verifier;
   const [questionInfo, setQuestionInfo] = useState({});
@@ -15,7 +13,7 @@ const Question = () => {
 
   useEffect(() => {
     console.log(
-      `effect to fetch question info, questionId=${questionId}, verifierAddr=${verifierAddr}, tronObj.tronWeb=${tronObj.tronWeb}, window.tronWeb=${window.tronWeb}`
+      `effect to fetch question info, window.tronWeb=${window.tronWeb}`
     );
     async function fetchQuestionInfo(id, tronWeb, verifierAddr) {
       console.log("tronWeb=" + tronWeb);
@@ -65,15 +63,13 @@ const Question = () => {
 
   const handleVerify = async () => {
     console.log(questionId);
-    const tronWeb = tronObj.tronWeb;
+    const tronWeb = window.tronWeb;
     if (tronWeb) {
       if (!answerAddress) {
         message.info("please input answer address!");
         return;
       }
-      let _2usd = await tronWeb
-        .contract()
-        .at("TX3ueji8qE89vmykLor4QtdwXHQpePh8kD");
+      let _2usd = await tronWeb.contract().at("TX3ueji8qE89vmykLor4QtdwXHQpePh8kD");
       let totalSupply = await _2usd.totalSupply().call({ _isConstant: true });
       console.log("totalSupply: " + totalSupply);
     } else {
@@ -81,24 +77,16 @@ const Question = () => {
     }
   };
 
-  const handleWithdraw = async () => {
-    if (questionId === "1") {
-      navigate("/questions/0");
-    } else {
-      navigate("/questions/1");
-    }
-  };
+  const handleWithdraw = async () => {};
 
   const handleRegisterQuestion = async () => {
-    const tronWeb = tronObj.tronWeb;
+    const tronWeb = window.tronWeb;
     if (tronWeb) {
       if (!questionAddress) {
         message.info("please input question address!");
         return;
       }
-      let _2usd = await tronWeb
-        .contract()
-        .at("TX3ueji8qE89vmykLor4QtdwXHQpePh8kD");
+      let _2usd = await tronWeb.contract().at("TX3ueji8qE89vmykLor4QtdwXHQpePh8kD");
       let totalSupply = await _2usd.totalSupply().call({ _isConstant: true });
       console.log("totalSupply: " + totalSupply);
     } else {
@@ -120,15 +108,12 @@ const Question = () => {
       <div className="question-box">
         <div className="question-title">
           <h2 className="question-title-text">
-            Question{" "}
-            {questionInfo && questionInfo.questionId && questionInfo.questionId}
+            Question {questionInfo && questionInfo.questionId && questionInfo.questionId}
           </h2>
         </div>
         <div className="question-description">
           <p className="question-description-text">
-            {questionInfo &&
-              questionInfo.description &&
-              questionInfo.description}
+            {questionInfo && questionInfo.description && questionInfo.description}
           </p>
         </div>
         <div className="question-testcases">

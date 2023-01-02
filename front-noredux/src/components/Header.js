@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { message, Button } from "antd";
 import tronLogo from "../assets/images/tron.svg";
 import "../assets/styles/header.css";
-import { tronObj } from "../utils/blockchain";
 import { LeftOutlined, RightOutlined, MenuOutlined } from "@ant-design/icons";
 import { useNavigate, useMatch } from "react-router-dom";
 
@@ -17,10 +16,9 @@ const AppHeader = () => {
     tronWeb.setHeader({
       "TRON-PRO-API-KEY": process.env.REACT_APP_tronweb_apikey,
     });
-    tronObj.tronWeb = tronWeb;
     window.tronWeb = tronWeb;
-    const account = window.tronWeb.defaultAddress.base58;
-    setCurrentAccount(window.tronWeb.defaultAddress.base58);
+    const account = tronWeb.defaultAddress.base58;
+    setCurrentAccount(account);
     console.log("currentAccount=" + account);
   };
 
@@ -112,7 +110,7 @@ const AppHeader = () => {
   };
 
   const closeConnect = () => {
-    tronObj.tronWeb = null;
+    window.tronWeb = null;
   };
 
   const listenTronLink = () => {

@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { tronObj } from "../utils/blockchain";
-import { List } from "antd";
+import { List, Typography } from "antd";
 import InfiniteScroll from 'react-infinite-scroll-component';
 
 const QuestionList = () => {
@@ -8,13 +7,12 @@ const QuestionList = () => {
   const [questionCount, setQuestionCount] = useState(0);
 
   useEffect(() => {
-    console.log(
-      `QuestionList fetching tronObj.tronWeb=${tronObj.tronWeb}, window.tronWeb=${window.tronWeb}`
-    );
-    async function fetchQuestionList() {
-      const tronWeb = tronObj.tronWeb;
+    console.log("QuestionList fetching, window.tronWeb=", verifierAddr, window.tronWeb);
+    async function fetchQuestionList(tronWeb) {
       if (tronWeb) {
+        console.log("fetchQuestionList tronWeb:   ", tronWeb);
         let verifier = await tronWeb.contract().at(verifierAddr);
+        console.log("fetchQuestionList verifier: ", verifier);
         const questionCountHex = await verifier
           .getQuestionCount()
           .call({ _isConstant: true });
@@ -23,29 +21,28 @@ const QuestionList = () => {
         setQuestionCount(cnt);
       }
     }
-    fetchQuestionList();
-  });
+    fetchQuestionList(window.tronWeb);
+  }, [verifierAddr]);
 
   const listItems = Array(questionCount)
     .fill(null)
     .map((_, i) => i)
-    .map((i) => <li>Question {i}</li>);
+    .map((i) => `Question ${i}`);
 
   return (
-    // <InfinityScroll>
-    //   <List
-    //     header="Question List"
-        
-    //   />
-    // </InfinityScroll>
-    <>
-    <List
-    
-      header={<div>Question List</div>}
-
-    />
-      <ul>{listItems}</ul>
-    </>
+    // <InfiniteScroll>
+      <List
+        header="Question List"
+        bordered
+        dataSource={listItems}
+        renderItem={item => (
+          <List.Item>
+            <Typography.Text mark>{item}</Typography.Text>
+          </List.Item>
+              
+        )}
+      />
+    // </InfiniteScroll>
   );
 };
 

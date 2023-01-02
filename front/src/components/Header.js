@@ -1,35 +1,35 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { message, Button } from "antd";
 import tronLogo from "../assets/images/tron.svg";
 import "../assets/styles/header.css";
 import { LeftOutlined, RightOutlined, MenuOutlined } from "@ant-design/icons";
 import { useParams, useNavigate, useMatch } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { setTronObj, setCurrentAccount } from "../app/rooterReducer";
+import { setTronObj, setConnectStatus } from "../store/rootReducer";
 
 const AppHeader = () => {
-  const { questionId } = useParams();
-  const currentAccount = useSelector((state) => state.rooter.currentAccount);
-  const firstQuestion = useSelector((state) => state.rooter.firstQuestionId);
-  const lastQuestion = useSelector((state) => state.rooter.lastQuestionId);
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   const matchQuestion = useMatch("/questions/:questionId");
-  const navigate = useNavigate();
-
-  const initTronWeb = (tronWeb) => {
-    console.log("initTronWeb tronWeb" + tronWeb);
-    tronWeb.setFullNode(process.env.REACT_APP_tronweb_fullHost);
-    tronWeb.setHeader({
-      "TRON-PRO-API-KEY": process.env.REACT_APP_tronweb_apikey,
-    });
-    window.tronWeb = tronWeb;
-    const account = tronWeb.defaultAddress.base58;
-    dispatch(setTronObj({ tronWeb: tronWeb }));
-    dispatch(setCurrentAccount(account));
-    console.log("currentAccount=" + account);
-  };
+  const { questionId } = useParams();
+  const [currentAccount, setCurrentAccount] = useState("");
+  const connectStatus = useSelector((state) => state.rooter.connectStatus);
+  const firstQuestion = useSelector((state) => state.rooter.firstQuestionId);
+  const lastQuestion = useSelector((state) => state.rooter.lastQuestionId);
 
   const initTronLinkWallet = async () => {
+    const initTronWeb = (tronWeb) => {
+      console.log("initTronWeb tronWeb" + tronWeb);
+      tronWeb.setFullNode(process.env.REACT_APP_tronweb_fullHost);
+      tronWeb.setHeader({ "TRON-PRO-API-KEY": process.env.REACT_APP_tronweb_apikey });
+      window.tronWeb = tronWeb;
+      dispatch(setTronObj({ tronWeb: tronWeb }));
+      dispatch(setConnectStatus(true));
+      const account = tronWeb.defaultAddress.base58;
+      setCurrentAccount(account);
+      console.log("currentAccount=" + account);
+    };
+
     try {
       const tronLinkPromise = new Promise((resolve) => {
         window.addEventListener(
@@ -77,6 +77,7 @@ const AppHeader = () => {
       });
 
       Promise.race([tronLinkPromise, appPromise]).then((tron) => {
+        console.log("ininitTronLinkWallet promise", tron);
         if (!tron) {
           message.info("Please install TronLink");
           console.log("TronLink is not initialized");
@@ -92,15 +93,16 @@ const AppHeader = () => {
 
         const tronLink = tron;
         if (tronLink.ready) {
+          console.log("tronLink is ready, just setting");
           const tronWeb = tronLink.tronWeb;
           tronWeb && initTronWeb(tronWeb);
-          console.log("tronLink is ready, just setting");
           return;
         } else {
           const res = tronLink.request({ method: "tron_requestAccounts" });
           console.log(`tron_requestAccounts res = ${JSON.stringify(res)}`);
           if (!res.code) {
             message.info("Please create or import wallet account via TronLink");
+            return;
           } else {
             if (res.code === 200) {
               const tronWeb = tronLink.tronWeb;
@@ -122,53 +124,50 @@ const AppHeader = () => {
 
   const closeConnect = () => {
     dispatch(setTronObj({}));
-    dispatch(setCurrentAccount(""));
+    dispatch(setConnectStatus(false));
   };
 
   useEffect(() => {
-    const listenTronLink = () => {
-      window.addEventListener("message", (res) => {
-        if (res.data.message && res.data.message.action === "accountsChanged") {
-          console.log(res.data, res.data.message, "accountsChanged");
+    function handleTronLinkAction(res) {
+      if (res.data.message && res.data.message.action === "accountsChanged") {
+        console.log(res.data, res.data.message, "accountsChanged");
+        return window.location.reload();
+      }
+      if (res.data.message && res.data.message.action === "setAccount") {
+        console.log(res.data, res.data.message, "setAccount");
+        if (window.tronWeb && !window.tronLink && res.data.message.data.address !== currentAccount) {
           return window.location.reload();
         }
-        if (res.data.message && res.data.message.action === "setAccount") {
-          console.log(res.data, res.data.message, "setAccount");
-          if (
-            window.tronWeb &&
-            !window.tronLink &&
-            res.data.message.data.address !== currentAccount
-          ) {
-            return window.location.reload();
-          }
-        }
-        if (res.data.message && res.data.message.action === "setNode") {
-          console.log(res.data, res.data.message, "setNode");
-          return window.location.reload();
-        }
-        // disconnectWebsite
-        if (res.data.message && res.data.message.action === "disconnectWeb") {
-          console.log(res.data, res.data.message, "disconnectWeb");
+      }
+      if (res.data.message && res.data.message.action === "setNode") {
+        console.log(res.data, res.data.message, "setNode");
+        return window.location.reload();
+      }
+      // disconnectWebsite
+      if (res.data.message && res.data.message.action === "disconnectWeb") {
+        console.log(res.data, res.data.message, "disconnectWeb");
 
-          return window.location.reload();
-        }
-        // connectWebsite
-        if (res.data.message && res.data.message.action === "connectWeb") {
-          console.log(res.data, res.data.message, "connectWeb");
-          return window.location.reload();
-        }
-      });
-    };
-    listenTronLink();
+        return window.location.reload();
+      }
+      // connectWebsite
+      if (res.data.message && res.data.message.action === "connectWeb") {
+        console.log(res.data, res.data.message, "connectWeb");
+        return window.location.reload();
+      }
+    }
+    window.addEventListener("message", handleTronLinkAction);
+
+    return () => window.removeEventListener("message", handleTronLinkAction);
   });
+
   useEffect(() => {
-    initTronLinkWallet();
+    if (!connectStatus) {
+      initTronLinkWallet();
+    }
   });
 
   const previousQuestion = () => {
-    console.log(
-      `previousQuestion currentQuestion: ${questionId}, firstQuestion: ${firstQuestion}`
-    );
+    console.log(`previousQuestion currentQuestion: ${questionId}, firstQuestion: ${firstQuestion}`);
     if (questionId > firstQuestion) {
       const prevId = parseInt(questionId) - 1;
       navigate(`/questions/${prevId}`);
@@ -177,9 +176,7 @@ const AppHeader = () => {
     }
   };
   const nextQuestion = () => {
-    console.log(
-      `previousQuestion currentQuestion: ${questionId}, lastQuestion: ${lastQuestion}, type of currentQuestion: ${typeof currentQuestion}`
-    );
+    console.log(`previousQuestion currentQuestion: ${questionId}, lastQuestion: ${lastQuestion}, type of currentQuestion: ${typeof currentQuestion}`);
     if (questionId < lastQuestion) {
       const nextId = parseInt(questionId) + 1;
       navigate(`/questions/${nextId}`);
@@ -200,7 +197,7 @@ const AppHeader = () => {
               <LeftOutlined />
             </Button>
             <span className="question-list">
-              <MenuOutlined /> Question List
+              <Button type="text" onClick={() => navigate("/")}><MenuOutlined /> Question List</Button>
             </span>
             <Button onClick={nextQuestion}>
               <RightOutlined />

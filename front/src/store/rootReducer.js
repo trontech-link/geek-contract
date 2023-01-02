@@ -2,7 +2,7 @@ import { createSlice } from "@reduxjs/toolkit"
 
 const initialState = {
   tronObj: {},
-  currentAccount: '',
+  connectStatus: false,
   questionCount: 0,
   firstQuestionId: 0,
   lastQuestionId: 0
@@ -15,8 +15,8 @@ export const rooterSlice = createSlice({
     setTronObj: (state, action) => {
       state.tronObj = action.payload;
     },
-    setCurrentAccount: (state, action) => {
-      state.currentAccount = action.payload;
+    setConnectStatus: (state, action) => {
+      state.connectStatus = action.payload;
     },
     setQuestionCount: (state, action) => {
       state.questionCount = action.payload;
@@ -32,7 +32,7 @@ export const rooterSlice = createSlice({
 
 export const {
   setTronObj,
-  setCurrentAccount,
+  setConnectStatus,
   setQuestionCount,
   setFirstQuestionId,
   setLastQuestionId

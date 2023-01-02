@@ -1,9 +1,9 @@
-import { Button, Input, message } from "antd";
-import "../assets/styles/question.css";
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { setLastQuestionId } from "../app/rooterReducer";
 import { useParams } from "react-router-dom";
+import { Button, Input, message } from "antd";
+import "../assets/styles/question.css";
+import { setLastQuestionId } from "../store/rootReducer";
 import { checkQuestionId } from "../utils/commonUtils";
 
 const Question = () => {
