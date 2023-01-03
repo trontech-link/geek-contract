@@ -5,14 +5,14 @@ import { message, Button } from "antd";
 import { LeftOutlined, RightOutlined, MenuOutlined } from "@ant-design/icons";
 import tronLogo from "../assets/images/tron.svg";
 import "../assets/styles/header.css";
-import { setTronObj, setConnectStatus } from "../store/rootReducer";
+import { setTronObj, setCurrentAccount, setConnectStatus } from "../store/rootReducer";
 
 const AppHeader = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const matchQuestion = useMatch("/questions/:questionId");
   const { questionId } = useParams();
-  const [currentAccount, setCurrentAccount] = useState("");
+  const currentAccount = useSelector((state) => state.rooter.currentAccount);
   const connectStatus = useSelector((state) => state.rooter.connectStatus);
   const firstQuestion = useSelector((state) => state.rooter.firstQuestionId);
   const lastQuestion = useSelector((state) => state.rooter.lastQuestionId);
@@ -26,7 +26,7 @@ const AppHeader = () => {
       dispatch(setTronObj({ tronWeb: tronWeb }));
       dispatch(setConnectStatus(true));
       const account = tronWeb.defaultAddress.base58;
-      setCurrentAccount(account);
+      dispatch(setCurrentAccount(account));
       console.log("currentAccount=" + account);
     };
 
@@ -186,35 +186,33 @@ const AppHeader = () => {
   };
 
   return (
-    <>
-      <div className="flex header-box">
-        <div className="flex header-left">
-          <img src={tronLogo} className="tron-logo" alt="" />
-        </div>
-        {matchQuestion ? (
-          <div className="flex header-center">
-            <Button onClick={previousQuestion}>
-              <LeftOutlined />
-            </Button>
-            <span className="question-list">
-              <Button type="text" onClick={() => navigate("/")}><MenuOutlined /> Question List</Button>
-            </span>
-            <Button onClick={nextQuestion}>
-              <RightOutlined />
-            </Button>
-          </div>
-        ) : (
-          <></>
-        )}
-        <div className="flex header-right">
-          <Button className="connect-wallet" onClick={initTronLinkWallet}>
-            {currentAccount && currentAccount.length > 0
-              ? currentAccount
-              : "Connect Wallet"}
+    <nav className="flex header-box">
+      <div className="flex header-left">
+        <img src={tronLogo} className="tron-logo" alt="" onClick={() => navigate("/")} />
+      </div>
+      {matchQuestion ? (
+        <div className="flex header-center">
+          <Button onClick={previousQuestion}>
+            <LeftOutlined />
+          </Button>
+          <span className="question-list">
+            <Button type="text" onClick={() => navigate("/")}><MenuOutlined /> Question List</Button>
+          </span>
+          <Button onClick={nextQuestion}>
+            <RightOutlined />
           </Button>
         </div>
+      ) : (
+        <></>
+      )}
+      <div className="flex header-right">
+        <Button className="connect-wallet" onClick={initTronLinkWallet}>
+          {currentAccount && currentAccount.length > 0
+            ? currentAccount
+            : "Connect Wallet"}
+        </Button>
       </div>
-    </>
+    </nav>
   );
 };
 

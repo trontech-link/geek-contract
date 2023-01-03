@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { Divider, Skeleton, List, message, Input, InputNumber, Button, Form } from "antd";
+import { Space, Table, Tag, Divider, Skeleton, List, message, Input, InputNumber, Button, Form } from "antd";
 import { TrophyFilled } from "@ant-design/icons";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { useDispatch, useSelector } from "react-redux";
@@ -84,66 +84,94 @@ const QuestionList = () => {
     }
   };
 
-  const renderItem = (item) => {
-    console.log("item", item);
-    return (
-      <List.Item>
-        <div style={{width: "1%"}}>{item.winner && item.winner !== "410000000000000000000000000000000000000000" ? <TrophyFilled style={{color: "#FFD700"}}/> :<TrophyFilled style={{opacity: 0}}/> }</div>
-        <Link to={`questions/${item.index}`}>{item.title}</Link>
-        <div></div>
-        <div></div>
-        <div>{item.desc}</div>
-      </List.Item>
-    );
-  };
+  // const renderItem = (item) => {
+  //   console.log("item", item);
+  //   return (
+  //     <List.Item>
+  //       <div style={{ width: "1%" }}>{item.winner && item.winner !== "410000000000000000000000000000000000000000" ? <TrophyFilled style={{ color: "#FFD700" }} /> : <TrophyFilled style={{ opacity: 0 }} />}</div>
+  //       <Link to={`questions/${item.index}`}>{item.title}</Link>
+  //       <div></div>
+  //       <div></div>
+  //       <div>{item.desc}</div>
+  //     </List.Item>
+  //   );
+  // };
+
+  const columns = [
+    {
+      title: "Status",
+      dataIndex: "winner",
+      key: "winner",
+      // width: 10,
+      render: (winner) => {
+        console.log("winner", winner);
+        if (winner && winner !== "410000000000000000000000000000000000000000") {
+          return <TrophyFilled style={{color: "#FFD700"}} />
+        } else {
+          return <TrophyFilled style={{ opacity: 0 }} />
+        }
+      }
+    },
+    {
+      title: "Title",
+      key: "title",
+      render: (item) => <a className="question-title-a" href={`questions/${item.index}`}>{item.title}</a>
+    }
+  ];
 
   return (
-    <div>
-      <div id="scrollableDiv" className="question-list-box">
-        <InfiniteScroll
-          dataLength={items.length}
-          next={loadMore}
-          hasMore={items.length < questionCount}
-          loader={<Skeleton avatar paragraph={{ rows: 1 }} active />}
-          endMessage={<Divider plain>It is all, nothing more 🤐</Divider>}
-          scrollableTarget="scrollableDiv"
-        >
-          <List
-            header="Question List"
-            dataSource={items}
-            renderItem={renderItem}
-          />
-        </InfiniteScroll>
-      </div>
-      <div className="register-question-box">
-        <Form name="basic" labelCol={{ span: 4 }} wrapperCol={{ span: 12 }}>
-          <Form.Item label="Question Address">
-            <Input
-              className="input"
-              placeholder="Question Address"
-              onChange={(e) => setQuestionAddress(e.target.value)}
-              defaultValue={questionAddress}
-              maxLength={64}
+    <>
+      <div className="left">
+        <Table columns={columns} dataSource={items}></Table>
+        {/* <div id="scrollableDiv" className="question-list-box">
+          <InfiniteScroll
+            dataLength={items.length}
+            next={loadMore}
+            hasMore={items.length < questionCount}
+            loader={<Skeleton avatar paragraph={{ rows: 1 }} active />}
+            endMessage={<Divider plain>It is all, nothing more 🤐</Divider>}
+            scrollableTarget="scrollableDiv"
+          >
+            <List
+              header="Question List"
+              dataSource={items}
+              renderItem={renderItem}
             />
-          </Form.Item>
-          <Form.Item label="Call Value">
-            <InputNumber
-              className="input"
-              placeholder="callValue"
-              onChange={(value) => setCallValue(parseInt(value, 10))}
-              defaultValue={callValue}
-              maxLength={64}
-              addonAfter="sun (1 TRX = 1,000,000 SUN)"
-            />
-          </Form.Item>
-          <Form.Item wrapperCol={{ offset: 4, span: 12 }}>
-            <Button type="primary" className="btn" onClick={handleRegisterQuestion}>
-              Register Question
-            </Button>
-          </Form.Item>
-        </Form>
+          </InfiniteScroll>
+        </div> */}
       </div>
-    </div>
+      <div className="group-line"></div>
+      <div className="right">
+        <div className="register-question-box">
+          <Form name="basic" labelCol={{ span: 4 }} wrapperCol={{ span: 16 }}>
+            <Form.Item label="Question Address">
+              <Input
+                className="input"
+                placeholder="Question Address"
+                onChange={(e) => setQuestionAddress(e.target.value)}
+                defaultValue={questionAddress}
+                maxLength={64}
+              />
+            </Form.Item>
+            <Form.Item label="Call Value">
+              <InputNumber
+                className="input"
+                placeholder="callValue"
+                onChange={(value) => setCallValue(parseInt(value, 10))}
+                defaultValue={callValue}
+                maxLength={64}
+                addonAfter="sun (1 TRX = 1,000,000 SUN)"
+              />
+            </Form.Item>
+            <Form.Item wrapperCol={{ offset: 4, span: 12 }}>
+              <Button type="primary" className="btn" onClick={handleRegisterQuestion}>
+                Register Question
+              </Button>
+            </Form.Item>
+          </Form>
+        </div>
+      </div>
+    </>
   );
 };
 

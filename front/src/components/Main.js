@@ -2,6 +2,7 @@ import { Layout } from "antd";
 import AppHeader from "./Header";
 import { Outlet, useMatch } from "react-router-dom";
 import QuestionList from "./QuestionList";
+import '../assets/styles/main.css';
 
 const Main = () => {
   const match = useMatch("/questions/:questionId");
@@ -9,8 +10,8 @@ const Main = () => {
   return (
     <Layout>
       <AppHeader />
-      <div className="main">
-        <div className="content">{match ? <Outlet /> : <QuestionList />}</div>
+      <div className="main flex">
+        {match ? <Outlet /> : <QuestionList />}
       </div>
     </Layout>
   );

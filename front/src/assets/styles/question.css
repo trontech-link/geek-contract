@@ -1,7 +1,15 @@
 .question-box {
     border: solid 3px #fff;
-    padding: 20px;
+    padding: 20px 20px 20px 50px;
     /* height: 400px; */
+}
+
+.question-title-a {
+    color: rgba(0, 0, 0, 0.88);
+}
+
+.question-title-a:hover {
+    color: rgb(0 122 255);
 }
 
 .verify-box {

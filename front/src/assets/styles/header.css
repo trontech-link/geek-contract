@@ -1,7 +1,3 @@
-.flex {
-    display: flex;
-}
-
 .header-box {
     background: #fff;
     height: 64px;
@@ -18,6 +14,10 @@
 
 .header-left > .tron-logo {
     width: 40px;
+}
+
+.header-left > .tron-logo:hover {
+    cursor: pointer;
 }
 
 .header-center {

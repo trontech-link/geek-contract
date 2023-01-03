@@ -11,6 +11,7 @@ const Question = () => {
   const dispatch = useDispatch();
   const { questionId } = useParams();
   const tronObj = useSelector((state) => state.rooter.tronObj);
+  const currentAccount = useSelector((state) => state.rooter.currentAccount);
   const verifierAddr = process.env.REACT_APP_verifier;
   const [questionInfo, setQuestionInfo] = useState({});
 
@@ -40,6 +41,9 @@ const Question = () => {
         const cnt = parseInt(tronWeb.toDecimal(questionCountHex));
         if (cnt > 0) {
           if (checkQuestionId(questionId, cnt)) {
+            const winner = await verifierObj.winner(questionId).call({ _isConstant: true });
+            const winnerPrize = await verifierObj.prizePool(questionId, 0).call({ _isConstant: true});
+            const questionOwnerPrize = await verifierObj.prizePool(questionId, 1).call({ _isConstant: true});
             const questionHex = await verifierObj.registeredQuestionList(questionId).call({ _isConstant: true });
             console.log("questionHex-----" + questionHex);
             let questionObj = await tronWeb.contract().at(questionHex);
@@ -65,8 +69,10 @@ const Question = () => {
               });
               console.log("firstTestCase-----", firstTestCase);
             }
-            let i;
             setQuestionInfo({
+              winner: tronWeb.address.fromHex(winner),
+              winnerPrize: tronWeb.toDecimal(winnerPrize),
+              questionOwnerPrize: tronWeb.toDecimal(questionOwnerPrize),
               questionId: questionId,
               questionAddress: {
                 hex: questionHex,
@@ -107,17 +113,6 @@ const Question = () => {
     }
   };
 
-  const handleWithdraw = async () => {
-    if (tronObj && tronObj.tronWeb && verifierObj) {
-      verifierObj.withdrawByWinner(questionId).send().then(res => {
-        if (res) {
-          console.log("txId=", res);
-        }
-      })
-    } else {
-      message.info("Please connect TronLink wallet!");
-    }
-  };
 
   const questionTestCase = () => {
     console.log("questionTestCase", questionInfo);
@@ -134,54 +129,103 @@ const Question = () => {
     }
   };
 
+  const isWinner = () => {
+    if (questionInfo && questionInfo.winner && questionInfo.winnerPrize) {
+      return questionInfo.winner === currentAccount;
+    } else {
+      return false;
+    }
+  }
+
+  const handleWinnerWithdraw = async () => {
+    if (tronObj && tronObj.tronWeb && verifierObj) {
+      verifierObj.withdrawByWinner(questionId).send().then(res => {
+        if (res) {
+          console.log("txId=", res);
+        }
+      })
+    } else {
+      message.info("Please connect TronLink wallet!");
+    }
+  };
+
+  const isQuestionOwner = () => {
+    if (questionInfo && questionInfo.winner && questionInfo.questionOwnerPrize) {
+      return questionInfo.questionOwner === currentAccount;
+    } else {
+      return false;
+    }
+  }
+
+  const handleQuestionOwnerWithdraw = async () => {
+    if (tronObj && tronObj.tronWeb && verifierObj) {
+      verifierObj.withdrawByQuestionOwner(questionId).send().then(res => {
+        if (res) {
+          console.log("txId=", res);
+        }
+      })
+    } else {
+      message.info("Please connect TronLink wallet!");
+    }
+  };
+
   return (
     <>
-      <div className="question-box">
-        <div className="question-title">
-          <h2 className="question-title-text">
-            Question {questionInfo && questionInfo.questionId && questionInfo.questionId}
-          </h2>
-        </div>
-        <div className="question-description">
-          <p className="question-description-text">
-            {questionInfo && questionInfo.description && questionInfo.description}
-          </p>
-        </div>
-        <div className="question-testcases">
-          <h3>Test Cases</h3>
-          {questionTestCase()}
+      <div className="left">
+
+        <div className="question-box">
+          <div className="question-title">
+            <h2 className="question-title-text">
+              Question {questionInfo && questionInfo.questionId && questionInfo.questionId}
+            </h2>
+          </div>
+          <div className="question-description">
+            <p className="question-description-text">
+              {questionInfo && questionInfo.description && questionInfo.description}
+            </p>
+          </div>
+          <div className="question-testcases">
+            <h3>Test Cases</h3>
+            {questionTestCase()}
+          </div>
         </div>
       </div>
-      <div className="verify-box">
-        <Form name="basic" labelCol={{ span: 4 }} wrapperCol={{ span: 16 }}>
-          <Form.Item>
-            <Input
-              className="answer-address"
-              placeholder="Answer Address"
-              onChange={(e) => setAnswerAddress(e.target.value)}
-              defaultValue={answerAddress}
-              maxLength={64}
-            />
-          </Form.Item>
-          <Form.Item>
-            <InputNumber
-              className="input"
-              placeholder="callValue"
-              onChange={(value) => setCallValue(parseInt(value, 10))}
-              defaultValue={callValue}
-              maxLength={64}
-              addonAfter="sun (1 TRX = 1,000,000 SUN)"
-            />
-          </Form.Item>
-          <Form.Item wrapperCol={{ offset: 0, span: 16 }}>
-            <Button type="primary" className="btn" onClick={handleVerify}>
-              Verify
-            </Button>
-            <Button type="default" className="btn" onClick={handleWithdraw}>
-              Withdraw
-            </Button>
-          </Form.Item>
-        </Form>
+      <div className="group-line"></div>
+      <div className="right">
+        <div className="verify-box">
+          <Form name="basic" labelCol={{ span: 4 }} wrapperCol={{ span: 16 }}>
+            <Form.Item label="Answer Address">
+              <Input
+                className="answer-address"
+                placeholder="Answer Address"
+                onChange={(e) => setAnswerAddress(e.target.value)}
+                defaultValue={answerAddress}
+                maxLength={64}
+              />
+            </Form.Item>
+            <Form.Item label="Call Value">
+              <InputNumber
+                className="input"
+                placeholder="callValue"
+                onChange={(value) => setCallValue(parseInt(value, 10))}
+                defaultValue={callValue}
+                maxLength={64}
+                addonAfter="sun (1 TRX = 1,000,000 SUN)"
+              />
+            </Form.Item>
+            <Form.Item wrapperCol={{ offset: 4, span: 16 }}>
+              <Button type="primary" className="btn" onClick={handleVerify}>
+                Verify
+              </Button>
+              {isWinner() && <Button type="default" className="btn" onClick={handleWinnerWithdraw}>
+                Winner Withdraw
+              </Button>}
+              {isQuestionOwner() && <Button type="default" className="btn" onClick={handleQuestionOwnerWithdraw}>
+                Question Owner Withdraw
+              </Button>}
+            </Form.Item>
+          </Form>
+        </div>
       </div>
     </>
   );
