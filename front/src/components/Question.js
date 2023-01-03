@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
-import { Button, Input, message } from "antd";
+import { Typography, Form, Button, Input, InputNumber, message, Row, Col } from "antd";
 import "../assets/styles/question.css";
-import { setLastQuestionId } from "../store/rootReducer";
+import { setQuestionCount } from "../store/rootReducer";
 import { checkQuestionId } from "../utils/commonUtils";
+const { Text, Title, Paragraph } = Typography;
 
 const Question = () => {
   const dispatch = useDispatch();
@@ -12,93 +13,125 @@ const Question = () => {
   const tronObj = useSelector((state) => state.rooter.tronObj);
   const verifierAddr = process.env.REACT_APP_verifier;
   const [questionInfo, setQuestionInfo] = useState({});
+
   const [answerAddress, setAnswerAddress] = useState("");
-  const [questionAddress, setQuestionAddress] = useState("");
+
+  const [verifierObj, setVerifierObj] = useState(null);
+  const [callValue, setCallValue] = useState(100);
 
   useEffect(() => {
-    console.log(
-      `effect to fetch question info, questionId=${questionId}, verifierAddr=${verifierAddr}, tronObj.tronWeb=${tronObj.tronWeb}, window.tronWeb=${window.tronWeb}`
-    );
-    async function fetchQuestionInfo(id, tronWeb, verifierAddr) {
-      console.log("tronWeb=" + tronWeb);
-      if (tronWeb) {
-        // const verifierAbi = [{"entrys":[{"stateMutability":"Nonpayable","type":"Constructor"},{"inputs":[{"name":"questionId","type":"uint256"},{"name":"winner","type":"address"},{"name":"rewardToWinner","type":"uint256"}],"name":"Rewarded","type":"Event"},{"inputs":[{"name":"testCaseId","type":"uint256"},{"name":"testCase","type":"tuple"},{"name":"expected","type":"bytes[]"},{"name":"actual","type":"bytes[]"}],"name":"TestFailed","type":"Event"},{"inputs":[{"name":"testCaseId","type":"uint256"},{"name":"testCase","type":"tuple"},{"name":"expected","type":"bytes[]"},{"name":"actual","type":"bytes[]"}],"name":"TestPassed","type":"Event"},{"inputs":[{"name":"questionId","type":"uint256"},{"name":"winner","type":"address"}],"name":"WinnerAssigned","type":"Event"},{"inputs":[{"name":"_questionId","type":"uint256"},{"name":"_amount","type":"uint256"}],"name":"deposit","stateMutability":"Nonpayable","type":"Function"},{"outputs":[{"name":"count","type":"uint256"}],"name":"getQuestionCount","stateMutability":"view","type":"function"},{"outputs":[{"type":"address"}],"name":"owner","stateMutability":"view","type":"function"},{"outputs":[{"type":"uint256"}],"inputs":[{"type":"uint256"},{"type":"uint256"}],"name":"prizePool","stateMutability":"view","type":"function"},{"inputs":[{"name":"questionAddr","type":"address"}],"name":"registerQuestion","stateMutability":"Payable","type":"Function"},{"outputs":[{"type":"address"}],"inputs":[{"type":"uint256"}],"name":"registeredQuestionList","stateMutability":"view","type":"function"},{"outputs":[{"type":"bool"}],"inputs":[{"name":"_questionId","type":"uint256"},{"name":"answerAddr","type":"address"}],"name":"verify","stateMutability":"Payable","type":"Function"},{"outputs":[{"type":"address"}],"inputs":[{"type":"uint256"}],"name":"winner","stateMutability":"view","type":"function"},{"inputs":[{"name":"_questionId","type":"uint256"}],"name":"withdrawByQuestionOwner","stateMutability":"Nonpayable","type":"Function"},{"inputs":[{"name":"_questionId","type":"uint256"}],"name":"withdrawByWinner","stateMutability":"Nonpayable","type":"Function"}]}];
-        // let verifier = await tronWeb.contract(verifierAbi, verifierAddr);
+    async function initVerifier() {
+      if (tronObj && tronObj.tronWeb) {
+        console.log("initVerifier");
+        const tronWeb = tronObj.tronWeb;
         let verifier = await tronWeb.contract().at(verifierAddr);
-        const questionCountHex = await verifier.getQuestionCount().call({ _isConstant: true });
-        const questionCount = parseInt(tronWeb.toDecimal(questionCountHex));
-        console.log("questionCount-----" + questionCount);
-        if (questionCount > 0) {
-          if (checkQuestionId(id, questionCount)) {
-            const questionHex = await verifier.registeredQuestionList(id).call({ _isConstant: true });
+        console.log("initVerifier verifier: ", verifier);
+        setVerifierObj(verifier);
+      }
+    }
+    initVerifier();
+  }, [dispatch, tronObj, verifierAddr]);
+
+  useEffect(() => {
+    async function fetchQuestionInfo() {
+      if (tronObj && tronObj.tronWeb && verifierObj) {
+        const tronWeb = tronObj.tronWeb;
+        const questionCountHex = await verifierObj.getQuestionCount().call({ _isConstant: true });
+        const cnt = parseInt(tronWeb.toDecimal(questionCountHex));
+        if (cnt > 0) {
+          if (checkQuestionId(questionId, cnt)) {
+            const questionHex = await verifierObj.registeredQuestionList(questionId).call({ _isConstant: true });
             console.log("questionHex-----" + questionHex);
             let questionObj = await tronWeb.contract().at(questionHex);
+
             const desc = await questionObj.description().call({ _isConstant: true });
             console.log("desc-----" + desc);
-            const testCases = await questionObj.getTestCases().call();
-            console.log("testCases-----" + testCases);
-            let info = {
-              questionId: id,
+
+            // fetch question test cases
+            let firstTestCase = [];
+            const testCaseCount = await questionObj.testCaseCount().call({ _isConstant: true });
+            const tcCnt = parseInt(tronWeb.toDecimal(testCaseCount));
+            if (tcCnt < 1) {
+              console.warn(`empty test cases of question ${questionId}`);
+            } else {
+              const tc = await questionObj.getTestCasesById(0).call();
+              console.log("tc--------", tc);
+              tc.forEach((t) => {
+                if (Array.isArray(t)) {
+                  firstTestCase.push(t.map((v) => tronWeb.toDecimal(v)));
+                } else {
+                  firstTestCase.push(t);
+                }
+              });
+              console.log("firstTestCase-----", firstTestCase);
+            }
+            let i;
+            setQuestionInfo({
+              questionId: questionId,
               questionAddress: {
                 hex: questionHex,
                 base58: tronWeb.address.fromHex(questionHex),
               },
               description: desc,
-              testCases: testCases,
-            };
-            setQuestionInfo(info);
-            console.log("info is ", JSON.stringify(info));
+              firstTestCase: firstTestCase,
+            });
           }
-          dispatch(setLastQuestionId(questionCount - 1));
+          dispatch(setQuestionCount(cnt));
         }
-      } else {
-        dispatch(setLastQuestionId(0));
       }
     }
 
-    fetchQuestionInfo(questionId, tronObj.tronWeb, verifierAddr);
-  }, [questionId, verifierAddr, tronObj, dispatch]);
+    fetchQuestionInfo();
+  }, [dispatch, questionId, tronObj, verifierAddr, verifierObj]);
 
   const handleVerify = async () => {
-    console.log(questionId);
-    const tronWeb = tronObj.tronWeb;
-    if (tronWeb) {
+    if (tronObj && tronObj.tronWeb && verifierObj) {
       if (!answerAddress) {
         message.info("please input answer address!");
         return;
       }
-      let _2usd = await tronWeb.contract().at("TX3ueji8qE89vmykLor4QtdwXHQpePh8kD");
-      let totalSupply = await _2usd.totalSupply().call({ _isConstant: true });
-      console.log("totalSupply: " + totalSupply);
-    } else {
-      message.info("Please connect TronLink wallet!");
-    }
-  };
-
-  const handleWithdraw = async () => {};
-
-  const handleRegisterQuestion = async () => {
-    const tronWeb = tronObj.tronWeb;
-    if (tronWeb) {
-      if (!questionAddress) {
-        message.info("please input question address!");
+      if (!callValue) {
+        message.info("please deposit at least one sun for answer verify");
         return;
       }
-      let _2usd = await tronWeb.contract().at("TX3ueji8qE89vmykLor4QtdwXHQpePh8kD");
-      let totalSupply = await _2usd.totalSupply().call({ _isConstant: true });
-      console.log("totalSupply: " + totalSupply);
+
+      verifierObj
+        .verify(parseInt(questionId), answerAddress)
+        .send({ feeLimit: 100_000_000, callValue: callValue, shouldPollResponse: true }).then(res => {
+          if (res) {
+            message.info("Congratulations, your answer passed all test cases!");
+          }
+        })
     } else {
       message.info("Please connect TronLink wallet!");
     }
   };
 
-  const updateAnswerAddress = (e) => {
-    console.log(e.target.value);
-    setAnswerAddress(e.target.value);
+  const handleWithdraw = async () => {
+    if (tronObj && tronObj.tronWeb && verifierObj) {
+      verifierObj.withdrawByWinner(questionId).send().then(res => {
+        if (res) {
+          console.log("txId=", res);
+        }
+      })
+    } else {
+      message.info("Please connect TronLink wallet!");
+    }
   };
-  const updateQuestionAddress = (e) => {
-    console.log(e.target.value);
-    setQuestionAddress(e.target.value);
+
+  const questionTestCase = () => {
+    console.log("questionTestCase", questionInfo);
+    if (questionInfo && questionInfo.firstTestCase) {
+      return (
+        <p>
+          input [{questionInfo.firstTestCase[0].join(", ")}]
+          <br />
+          output [{questionInfo.firstTestCase[1].join(", ")}]
+        </p>
+      );
+    } else {
+      return <></>;
+    }
   };
 
   return (
@@ -116,39 +149,39 @@ const Question = () => {
         </div>
         <div className="question-testcases">
           <h3>Test Cases</h3>
-          <p>
-            input [1, 1]
-            <br />
-            output 2
-          </p>
+          {questionTestCase()}
         </div>
       </div>
       <div className="verify-box">
-        <Input
-          className="answer-address"
-          placeholder="Answer Address"
-          onChange={updateAnswerAddress}
-          defaultValue={answerAddress}
-          maxLength={64}
-        />
-        <Button type="primary" className="btn" onClick={handleVerify}>
-          Verify
-        </Button>
-        <Button type="default" className="btn" onClick={handleWithdraw}>
-          Withdraw
-        </Button>
-      </div>
-      <div className="register-question-box">
-        <Input
-          className="question-address"
-          placeholder="Question Address"
-          onChange={updateQuestionAddress}
-          defaultValue={questionAddress}
-          maxLength={64}
-        />
-        <Button type="primary" className="btn" onClick={handleRegisterQuestion}>
-          Register Question
-        </Button>
+        <Form name="basic" labelCol={{ span: 4 }} wrapperCol={{ span: 16 }}>
+          <Form.Item>
+            <Input
+              className="answer-address"
+              placeholder="Answer Address"
+              onChange={(e) => setAnswerAddress(e.target.value)}
+              defaultValue={answerAddress}
+              maxLength={64}
+            />
+          </Form.Item>
+          <Form.Item>
+            <InputNumber
+              className="input"
+              placeholder="callValue"
+              onChange={(value) => setCallValue(parseInt(value, 10))}
+              defaultValue={callValue}
+              maxLength={64}
+              addonAfter="sun (1 TRX = 1,000,000 SUN)"
+            />
+          </Form.Item>
+          <Form.Item wrapperCol={{ offset: 0, span: 16 }}>
+            <Button type="primary" className="btn" onClick={handleVerify}>
+              Verify
+            </Button>
+            <Button type="default" className="btn" onClick={handleWithdraw}>
+              Withdraw
+            </Button>
+          </Form.Item>
+        </Form>
       </div>
     </>
   );

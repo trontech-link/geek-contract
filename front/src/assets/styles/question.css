@@ -1,11 +1,11 @@
 .question-box {
     border: solid 3px #fff;
-    padding: 5px;
-    height: 400px;
+    padding: 20px;
+    /* height: 400px; */
 }
 
 .verify-box {
-    padding: 5px;
+    padding: 20px;
     width: 100%;
 }
 
@@ -15,17 +15,7 @@
 
 .answer-address {
     margin-right: 20px;
-    width: 50%;
-}
-
-.register-question-box {
-    padding: 5px;
-    width: 100%;
-}
-
-.question-address {
-    margin-right: 20px;
-    width: 50%;
+    /* width: 50%; */
 }
 
 .btn {
