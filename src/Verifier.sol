@@ -11,20 +11,20 @@ contract Verifier {
     mapping(uint256 => uint256[2]) public prizePool;
     mapping(uint256 => address payable) public winner;
 
-    event TestFailed(
-        uint256 testCaseId,
-        TestCase testCase,
-        bytes[] expected,
-        bytes[] actual
-    );
-    event TestPassed(
-        uint256 testCaseId,
-        TestCase testCase,
-        bytes[] expected,
-        bytes[] actual
-    );
-    event WinnerAssigned(uint256 questionId, address winner);
-    event Rewarded(uint256 questionId, address winner, uint256 rewardToWinner);
+    // event TestFailed(
+    //     uint256 testCaseId,
+    //     TestCase testCase,
+    //     bytes[] expected,
+    //     bytes[] actual
+    // );
+    // event TestPassed(
+    //     uint256 testCaseId,
+    //     TestCase testCase,
+    //     bytes[] expected,
+    //     bytes[] actual
+    // );
+    // event WinnerAssigned(uint256 questionId, address winner);
+    // event Rewarded(uint256 questionId, address winner, uint256 rewardToWinner);
 
     constructor() {
         owner = payable(msg.sender);
@@ -71,10 +71,10 @@ contract Verifier {
             if (
                 keccak256(abi.encode(expected)) != keccak256(abi.encode(actual))
             ) {
-                emit TestFailed(i, testCases[i], expected, actual);
+                // emit TestFailed(i, testCases[i], expected, actual);
                 isAllTestPassed = false;
             } else {
-                emit TestPassed(i, testCases[i], expected, actual);
+                // emit TestPassed(i, testCases[i], expected, actual);
             }
         }
 
@@ -82,7 +82,7 @@ contract Verifier {
             //Assign winner
             winner[_questionId] = answerOwner;
 
-            emit WinnerAssigned(_questionId, answerOwner);
+            // emit WinnerAssigned(_questionId, answerOwner);
         }
 
         return isAllTestPassed;
@@ -112,7 +112,7 @@ contract Verifier {
         // Send reward to the winner
         winnerAddr.transfer(rewardToWinner);
 
-        emit Rewarded(_questionId, winnerAddr, rewardToWinner);
+        // emit Rewarded(_questionId, winnerAddr, rewardToWinner);
     }
 
     function withdrawByQuestionOwner(uint256 _questionId) public {
@@ -187,5 +187,9 @@ contract Verifier {
     {
         address questionAddr = registeredQuestionList[_questionId];
         return Question(questionAddr).winnerShare();
+    }
+
+    function getQuestionCount() public view returns (uint count) {
+        return registeredQuestionList.length;
     }
 }

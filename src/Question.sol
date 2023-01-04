@@ -6,14 +6,16 @@ import "./TestCase.sol";
 
 contract Question is IQuestion {
     address payable public owner;
+    string public title;
     string public description;
     uint256 public winnerShare; // in percent
     TestCase[] internal testCases;
     uint256 public testCaseCount;
 
-    constructor(string memory _description, uint256 _winnerShare) {
+    constructor(string memory _title, string memory _description, uint256 _winnerShare) {
         owner = payable(msg.sender);
         testCaseCount = 0;
+        title = _title;
         description = _description;
         winnerShare = _winnerShare;
     }
@@ -21,6 +23,10 @@ contract Question is IQuestion {
     modifier onlyOwner() {
         require(msg.sender == owner, "Not Owner");
         _;
+    }
+
+    function setTitle(string memory _title) public onlyOwner {
+        title = _title;
     }
 
     function setDescription(string memory _description) public onlyOwner {
