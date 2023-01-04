@@ -105,8 +105,11 @@ const Question = () => {
         .verify(parseInt(questionId), answerAddress)
         .send({ feeLimit: 100_000_000, callValue: callValue, shouldPollResponse: true })
         .then((res) => {
+          console.log("verify response", res);
           if (res) {
             message.info("Congratulations, your answer passed all test cases!");
+          } else {
+            message.warning("Your answer verify failed");
           }
         });
     } else {
@@ -177,14 +180,26 @@ const Question = () => {
     }
   };
 
+  const buildQuestionTitle = () => {
+    let t = '';
+    if (questionInfo && questionInfo.questionId) {
+      t = questionInfo.questionId + '. ';
+    }
+
+    if (questionInfo && questionInfo.title) {
+      t = t + questionInfo.title;
+    }
+
+    return t;
+  }
+
   return (
     <>
       <div className="left">
         <div className="question-box">
           <div className="question-title">
             <h2 className="question-title-text">
-              {questionInfo && questionInfo.questionId && questionInfo.questionId + "."}{" "}
-              {questionInfo && questionInfo.tittle}
+              {buildQuestionTitle()}
             </h2>
           </div>
           <div className="question-description">
