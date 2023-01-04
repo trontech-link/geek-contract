@@ -173,59 +173,59 @@ const Question = () => {
     <>
       <div className="left">
 
-        <div className="question-box">
-          <div className="question-title">
-            <h2 className="question-title-text">
-              Question {questionInfo && questionInfo.questionId && questionInfo.questionId}
-            </h2>
-          </div>
-          <div className="question-description">
-            <p className="question-description-text">
-              {questionInfo && questionInfo.description && questionInfo.description}
-            </p>
-          </div>
-          <div className="question-testcases">
-            <h3>Test Cases</h3>
-            {questionTestCase()}
-          </div>
+      <div className="question-box">
+        <div className="question-title">
+          <h2 className="question-title-text">
+            Question {questionInfo && questionInfo.questionId && questionInfo.questionId}
+          </h2>
         </div>
+        <div className="question-description">
+          <p className="question-description-text">
+            {questionInfo && questionInfo.description && questionInfo.description}
+          </p>
+        </div>
+        <div className="question-testcases">
+          <h3>Test Cases</h3>
+          {questionTestCase()}
+        </div>
+      </div>
       </div>
       <div className="group-line"></div>
       <div className="right">
-        <div className="verify-box">
-          <Form name="basic" labelCol={{ span: 4 }} wrapperCol={{ span: 16 }}>
+      <div className="verify-box">
+        <Form name="basic" labelCol={{ span: 4 }} wrapperCol={{ span: 16 }}>
             <Form.Item label="Answer Address">
-              <Input
-                className="answer-address"
-                placeholder="Answer Address"
-                onChange={(e) => setAnswerAddress(e.target.value)}
-                defaultValue={answerAddress}
-                maxLength={64}
-              />
-            </Form.Item>
+            <Input
+              className="answer-address"
+              placeholder="Answer Address"
+              onChange={(e) => setAnswerAddress(e.target.value)}
+              defaultValue={answerAddress}
+              maxLength={64}
+            />
+          </Form.Item>
             <Form.Item label="Call Value">
-              <InputNumber
-                className="input"
-                placeholder="callValue"
-                onChange={(value) => setCallValue(parseInt(value, 10))}
-                defaultValue={callValue}
-                maxLength={64}
-                addonAfter="sun (1 TRX = 1,000,000 SUN)"
-              />
-            </Form.Item>
+            <InputNumber
+              className="input"
+              placeholder="callValue"
+              onChange={(value) => setCallValue(parseInt(value, 10))}
+              defaultValue={callValue}
+              maxLength={64}
+              addonAfter="sun (1 TRX = 1,000,000 SUN)"
+            />
+          </Form.Item>
             <Form.Item wrapperCol={{ offset: 4, span: 16 }}>
-              <Button type="primary" className="btn" onClick={handleVerify}>
-                Verify
-              </Button>
+            <Button type="primary" className="btn" onClick={handleVerify}>
+              Verify
+            </Button>
               {isWinner() && <Button type="default" className="btn" onClick={handleWinnerWithdraw}>
                 Winner Withdraw
               </Button>}
               {isQuestionOwner() && <Button type="default" className="btn" onClick={handleQuestionOwnerWithdraw}>
                 Question Owner Withdraw
               </Button>}
-            </Form.Item>
-          </Form>
-        </div>
+          </Form.Item>
+        </Form>
+      </div>
       </div>
     </>
   );

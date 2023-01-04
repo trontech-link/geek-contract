@@ -3,7 +3,6 @@ import { Space, Table, Tag, Divider, Skeleton, List, message, Input, InputNumber
 import { TrophyFilled } from "@ant-design/icons";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { useDispatch, useSelector } from "react-redux";
-import { Link } from "react-router-dom";
 import { setQuestionCount } from "../store/rootReducer";
 import "../assets/styles/questionList.css";
 
@@ -122,7 +121,7 @@ const QuestionList = () => {
   return (
     <>
       <div className="left">
-        <Table columns={columns} dataSource={items}></Table>
+        <Table rowKey="index" columns={columns} dataSource={items}></Table>
         {/* <div id="scrollableDiv" className="question-list-box">
           <InfiniteScroll
             dataLength={items.length}

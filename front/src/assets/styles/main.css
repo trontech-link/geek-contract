@@ -16,7 +16,7 @@
 
 .main {
     margin-top: 0.3rem;
-    min-height: 800rem;
+    min-height: 94.5vh;
 }
 
 .group-line {
@@ -29,7 +29,7 @@
 .left {
     background-color: #fff;
     width: calc(50% - 4px);
-    padding: 1.25rem;
+    padding: 1.25rem 1.25rem 1.25rem 4rem;
 }
 
 .right {
