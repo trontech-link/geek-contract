@@ -167,7 +167,6 @@ const AppHeader = () => {
   });
 
   const previousQuestion = () => {
-    console.log(`previousQuestion currentQuestion: ${questionId}, firstQuestion: ${firstQuestion}`);
     if (questionId > firstQuestion) {
       const prevId = parseInt(questionId) - 1;
       navigate(`/questions/${prevId}`);
@@ -176,7 +175,6 @@ const AppHeader = () => {
     }
   };
   const nextQuestion = () => {
-    console.log(`previousQuestion currentQuestion: ${questionId}, lastQuestion: ${lastQuestion}, type of currentQuestion: ${typeof currentQuestion}`);
     if (questionId < lastQuestion) {
       const nextId = parseInt(questionId) + 1;
       navigate(`/questions/${nextId}`);

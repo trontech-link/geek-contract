@@ -1,17 +1,16 @@
-import { useEffect, useState, useCallback } from "react";
-import { Space, Table, Tag, Divider, Skeleton, List, message, Input, InputNumber, Button, Form } from "antd";
-import { TrophyFilled } from "@ant-design/icons";
-import InfiniteScroll from "react-infinite-scroll-component";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { Table, message, Input, InputNumber, Button, Form } from "antd";
+import { TrophyFilled } from "@ant-design/icons";
 import { setQuestionCount } from "../store/rootReducer";
 import "../assets/styles/questionList.css";
+import { triggerConstant } from "../utils/commonUtils";
 
 const QuestionList = () => {
   const dispatch = useDispatch();
   let tronObj = useSelector((state) => state.rooter.tronObj);
   let questionCount = useSelector((state) => state.rooter.questionCount);
   const verifierAddr = process.env.REACT_APP_verifier;
-  const [loading, setLoading] = useState(false);
   const [items, setItems] = useState([]);
   const [verifierObj, setVerifierObj] = useState(null);
   const [questionAddress, setQuestionAddress] = useState("");
@@ -20,47 +19,45 @@ const QuestionList = () => {
   useEffect(() => {
     async function initVerifier() {
       if (tronObj && tronObj.tronWeb) {
-        console.log("initVerifier");
-        const tronWeb = tronObj.tronWeb;
-        let verifier = await tronWeb.contract().at(verifierAddr);
-        console.log("initVerifier verifier: ", verifier);
-        const questionCountHex = await verifier.getQuestionCount().call({ _isConstant: true });
-        const cnt = parseInt(tronWeb.toDecimal(questionCountHex));
-        dispatch(setQuestionCount(cnt));
-        setVerifierObj(verifier);
+        try {
+          const tronWeb = tronObj.tronWeb;
+          let verifier = await tronWeb.contract().at(verifierAddr);
+          const questionCountHex = await triggerConstant(verifier, 'getQuestionCount');
+          const cnt = parseInt(tronWeb.toDecimal(questionCountHex));
+          dispatch(setQuestionCount(cnt));
+          setVerifierObj(verifier);
+        } catch (err) {
+          console.error("iniVerifier", err);
+        }
       }
     }
     initVerifier();
   }, [dispatch, tronObj, verifierAddr]);
 
-  const loadMore = useCallback(async () => {
-    if (tronObj && tronObj.tronWeb && verifierObj) {
-      console.log("loadMore started");
-      if (loading) return;
-      setLoading(true);
-      let tmpList = [];
-      try {
-        for (let i = items.length; i < questionCount && items.length < questionCount; i++) {
-          const winner = await verifierObj.winner(i).call({ _isConstant: true });
-          const questionHex = await verifierObj.registeredQuestionList(i).call({ _isConstant: true });
-          console.log("questionHex-----" + questionHex);
-          let questionObj = await tronObj.tronWeb.contract().at(questionHex);
-          const desc = await questionObj.description().call({ _isConstant: true });
-          console.log("desc-----" + desc);
-          tmpList.push({ index: i, title: `Question ${i}`, desc: desc, winner: winner });
-        }
-        setItems((items) => [...items, ...tmpList]);
-        setLoading(false);
-      } catch (err) {
-        console.log("loadMore", err);
-        setLoading(false);
-      }
-    }
-  }, [items.length, loading, questionCount, tronObj, verifierObj]);
-
   useEffect(() => {
-    loadMore();
-  }, [loadMore]);
+
+    const fetchQuestionList = async () => {
+      if (tronObj && tronObj.tronWeb && verifierObj) {
+        let tmpList = [];
+        try {
+          for (let i = items.length; i < questionCount && items.length < questionCount; i++) {
+            const winner = await triggerConstant(verifierObj, 'winner', i);
+            const questionHex = await triggerConstant(verifierObj, 'registeredQuestionList', i);
+            let questionObj = await tronObj.tronWeb.contract().at(questionHex);
+            const title = await triggerConstant(questionObj, 'title');
+            console.log("title: " + title);
+            const desc = await triggerConstant(questionObj, 'description');
+            console.log("desc: " + desc);
+            tmpList.push({ index: i, title: `${i}. ${title}`, desc: desc, winner: winner });
+          }
+          setItems((items) => [...items, ...tmpList]);
+        } catch (err) {
+          console.error("fetchQuestionList", err);
+        }
+      }
+    };
+    fetchQuestionList();
+  }, [items.length, questionCount, tronObj, verifierObj]);
 
   const handleRegisterQuestion = async () => {
     if (tronObj && tronObj.tronWeb && verifierObj) {
@@ -83,19 +80,6 @@ const QuestionList = () => {
     }
   };
 
-  // const renderItem = (item) => {
-  //   console.log("item", item);
-  //   return (
-  //     <List.Item>
-  //       <div style={{ width: "1%" }}>{item.winner && item.winner !== "410000000000000000000000000000000000000000" ? <TrophyFilled style={{ color: "#FFD700" }} /> : <TrophyFilled style={{ opacity: 0 }} />}</div>
-  //       <Link to={`questions/${item.index}`}>{item.title}</Link>
-  //       <div></div>
-  //       <div></div>
-  //       <div>{item.desc}</div>
-  //     </List.Item>
-  //   );
-  // };
-
   const columns = [
     {
       title: "Status",
@@ -103,41 +87,28 @@ const QuestionList = () => {
       key: "winner",
       // width: 10,
       render: (winner) => {
-        console.log("winner", winner);
         if (winner && winner !== "410000000000000000000000000000000000000000") {
-          return <TrophyFilled style={{color: "#FFD700"}} />
+          return <TrophyFilled style={{ color: "#FFD700" }} />;
         } else {
-          return <TrophyFilled style={{ opacity: 0 }} />
+          return <TrophyFilled style={{ opacity: 0 }} />;
         }
-      }
+      },
     },
     {
       title: "Title",
       key: "title",
-      render: (item) => <a className="question-title-a" href={`questions/${item.index}`}>{item.title}</a>
-    }
+      render: (item) => (
+        <a className="question-title-a" href={`questions/${item.index}`}>
+          {item.title}
+        </a>
+      ),
+    },
   ];
 
   return (
     <>
       <div className="left">
         <Table rowKey="index" columns={columns} dataSource={items}></Table>
-        {/* <div id="scrollableDiv" className="question-list-box">
-          <InfiniteScroll
-            dataLength={items.length}
-            next={loadMore}
-            hasMore={items.length < questionCount}
-            loader={<Skeleton avatar paragraph={{ rows: 1 }} active />}
-            endMessage={<Divider plain>It is all, nothing more 🤐</Divider>}
-            scrollableTarget="scrollableDiv"
-          >
-            <List
-              header="Question List"
-              dataSource={items}
-              renderItem={renderItem}
-            />
-          </InfiniteScroll>
-        </div> */}
       </div>
       <div className="group-line"></div>
       <div className="right">
