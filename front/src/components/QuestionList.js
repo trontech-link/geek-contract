@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Table, message, Input, InputNumber, Button, Form } from "antd";
-import { TrophyFilled } from "@ant-design/icons";
+import { TrophyFilled, CodeFilled } from "@ant-design/icons";
 import { setQuestionCount } from "../store/rootReducer";
 import "../assets/styles/questionList.css";
 import { triggerConstant } from "../utils/commonUtils";
@@ -22,7 +22,7 @@ const QuestionList = () => {
         try {
           const tronWeb = tronObj.tronWeb;
           let verifier = await tronWeb.contract().at(verifierAddr);
-          const questionCountHex = await triggerConstant(verifier, 'getQuestionCount');
+          const questionCountHex = await triggerConstant(verifier, "getQuestionCount");
           const cnt = parseInt(tronWeb.toDecimal(questionCountHex));
           dispatch(setQuestionCount(cnt));
           setVerifierObj(verifier);
@@ -35,18 +35,17 @@ const QuestionList = () => {
   }, [dispatch, tronObj, verifierAddr]);
 
   useEffect(() => {
-
     const fetchQuestionList = async () => {
       if (tronObj && tronObj.tronWeb && verifierObj) {
         let tmpList = [];
         try {
           for (let i = items.length; i < questionCount && items.length < questionCount; i++) {
-            const winner = await triggerConstant(verifierObj, 'winner', i);
-            const questionHex = await triggerConstant(verifierObj, 'registeredQuestionList', i);
+            const winner = await triggerConstant(verifierObj, "winner", i);
+            const questionHex = await triggerConstant(verifierObj, "registeredQuestionList", i);
             let questionObj = await tronObj.tronWeb.contract().at(questionHex);
-            const title = await triggerConstant(questionObj, 'title');
+            const title = await triggerConstant(questionObj, "title");
             console.log("title: " + title);
-            const desc = await triggerConstant(questionObj, 'description');
+            const desc = await triggerConstant(questionObj, "description");
             console.log("desc: " + desc);
             tmpList.push({ index: i, title: `${i}. ${title}`, desc: desc, winner: winner });
           }
@@ -71,10 +70,17 @@ const QuestionList = () => {
         return;
       }
 
-      const res = await verifierObj
+      verifierObj
         .registerQuestion(questionAddress)
-        .send({ feeLimit: 100_000_000, callValue: callValue, shouldPollResponse: true });
-      console.log("res-----", res);
+        .send({ feeLimit: 100_000_000, callValue: callValue, shouldPollResponse: true })
+        .then((res) => {
+          console.log("res=", res);
+          if (res.status === 200) {
+            window.location.reload();
+          } else {
+            message.error(res.data);
+          }
+        });
     } else {
       message.info("Please connect TronLink wallet!");
     }
@@ -90,7 +96,7 @@ const QuestionList = () => {
         if (winner && winner !== "410000000000000000000000000000000000000000") {
           return <TrophyFilled style={{ color: "#FFD700" }} />;
         } else {
-          return <TrophyFilled style={{ opacity: 0 }} />;
+          return <CodeFilled style={{ color: "#00A300" }} />;
         }
       },
     },
