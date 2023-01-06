@@ -7,6 +7,7 @@ import { setQuestionCount } from "../store/rootReducer";
 import { triggerConstant, checkQuestionId } from "../utils/commonUtils";
 
 const Question = () => {
+  const testCaseAbi = process.env.REACT_APP_test_case_abi_temp;
   const dispatch = useDispatch();
   const { questionId } = useParams();
   const tronObj = useSelector((state) => state.rooter.tronObj);
@@ -48,22 +49,28 @@ const Question = () => {
               const desc = await triggerConstant(questionObj, "description");
 
               // fetch question test cases
-              let firstTestCase = [];
+              let firstTestCase;
               const testCaseCount = await triggerConstant(questionObj, "testCaseCount");
               const tcCnt = parseInt(tronWeb.toDecimal(testCaseCount));
               if (tcCnt < 1) {
                 console.warn(`empty test cases of question ${questionId}`);
               } else {
-                const tc = await triggerConstant(questionObj, "getTestCasesById", 0);
-                console.log("tc--------", tc);
-                tc.forEach((t) => {
-                  if (Array.isArray(t)) {
-                    firstTestCase.push(t.map((v) => tronWeb.toDecimal(v)));
-                  } else {
-                    firstTestCase.push(t);
-                  }
-                });
-                console.log("firstTestCase-----", firstTestCase);
+                const tcHex = await triggerConstant(questionObj, "getTestCasesById", 0);
+                const inputTypeHex = await triggerConstant(questionObj, "inputType");
+                const outputTypeHex = await triggerConstant(questionObj, "outputType");
+                let tcAbi = testCaseAbi.replace("inputType", inputTypeHex).replace("outputType", outputTypeHex);
+                console.log(
+                  "tcAbi=",
+                  tcAbi,
+                  "inputTypeHex=",
+                  inputTypeHex,
+                  "outputTypeHex=",
+                  outputTypeHex,
+                  "tcHex=",
+                  tcHex
+                );
+                let tc = tronWeb.utils.abi.decodeParams(JSON.parse(tcAbi), tcHex);
+                firstTestCase = buildFirstTestCase(tc);
               }
               setQuestionInfo({
                 winner: tronWeb.address.fromHex(winner),
@@ -117,15 +124,22 @@ const Question = () => {
     }
   };
 
-  const questionTestCase = () => {
-    if (questionInfo && questionInfo.firstTestCase) {
+  const buildFirstTestCase = (tc) => {
+    const f = (p) => {
+      if (Array.isArray(p)) {
+        return `[${p.map((i) => tronObj.tronWeb.toDecimal(i)).join(", ")}]`;
+      } else {
+        return tronObj.tronWeb.fromHex(p);
+      }
+    };
+    if (tc) {
       return (
         <>
           <h3>Test Case</h3>
           <p>
-            input [{questionInfo.firstTestCase[0].join(", ")}]
+            input {f(tc[0].input)}
             <br />
-            output [{questionInfo.firstTestCase[1].join(", ")}]
+            output {f(tc[0].output)}
           </p>
         </>
       );
@@ -181,9 +195,9 @@ const Question = () => {
   };
 
   const buildQuestionTitle = () => {
-    let t = '';
+    let t = "";
     if (questionInfo && questionInfo.questionId) {
-      t = questionInfo.questionId + '. ';
+      t = questionInfo.questionId + ". ";
     }
 
     if (questionInfo && questionInfo.title) {
@@ -191,16 +205,14 @@ const Question = () => {
     }
 
     return t;
-  }
+  };
 
   return (
     <>
       <div className="left">
         <div className="question-box">
           <div className="question-title">
-            <h2 className="question-title-text">
-              {buildQuestionTitle()}
-            </h2>
+            <h2 className="question-title-text">{buildQuestionTitle()}</h2>
           </div>
           <div className="question-description">
             <p className="question-description-text">
@@ -208,7 +220,7 @@ const Question = () => {
             </p>
           </div>
           <div className="question-testcases">
-            {questionTestCase()}
+            {questionInfo && questionInfo.firstTestCase && questionInfo.firstTestCase}
           </div>
         </div>
       </div>

@@ -2,6 +2,6 @@
 pragma solidity ^0.8.6;
 
 struct TestCase {
-    bytes[] input;
+    bytes[][] input;
     bytes[] output;
 }
