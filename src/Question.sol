@@ -1,23 +1,23 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.6;
 
-import "./IQuestion.sol";
-import "./TestCase.sol";
-
-contract Question is IQuestion {
+abstract contract Question {
     address payable public owner;
     string public title;
     string public description;
     uint256 public winnerShare; // in percent
-    TestCase[] internal testCases;
     uint256 public testCaseCount;
 
-    constructor(string memory _title, string memory _description, uint256 _winnerShare) {
+    constructor(
+        string memory _title,
+        string memory _description,
+        uint256 _winnerShare
+    ) {
         owner = payable(msg.sender);
-        testCaseCount = 0;
         title = _title;
         description = _description;
         winnerShare = _winnerShare;
+        testCaseCount = 0;
     }
 
     modifier onlyOwner() {
@@ -33,64 +33,12 @@ contract Question is IQuestion {
         description = _description;
     }
 
-    function addTestCase(uint256[] memory input, uint256[] memory output)
-        public
-        override
-        onlyOwner
-    {
-        uint256 inputNums = input.length;
-        bytes[] memory inputBytes = new bytes[](inputNums);
-        for (uint256 i = 0; i < inputNums; i++) {
-            inputBytes[i] = abi.encode(input[i]);
-        }
-
-        uint256 outputNums = output.length;
-        bytes[] memory outputBytes = new bytes[](outputNums);
-        for (uint256 i = 0; i < outputNums; i++) {
-            outputBytes[i] = abi.encode(output[i]);
-        }
-
-        TestCase memory testCase = TestCase(inputBytes, outputBytes);
-
-        testCases.push(testCase);
-        testCaseCount++;
-    }
-
-    function setTestCase(
-        uint256 testCaseId,
-        uint256[] memory input,
-        uint256[] memory output
-    ) public {
-        uint256 inputNums = input.length;
-        bytes[] memory inputBytes = new bytes[](inputNums);
-        for (uint256 i = 0; i < inputNums; i++) {
-            inputBytes[i] = abi.encode(input[i]);
-        }
-
-        uint256 outputNums = output.length;
-        bytes[] memory outputBytes = new bytes[](outputNums);
-        for (uint256 i = 0; i < outputNums; i++) {
-            outputBytes[i] = abi.encode(output[i]);
-        }
-
-        TestCase memory testCase = TestCase(inputBytes, outputBytes);
-
-        testCases[testCaseId] = testCase;
-    }
-
-    function getTestCases() public view override returns (TestCase[] memory) {
-        return testCases;
-    }
-
-    function getTestCasesById(uint256 testCaseId)
-        public
-        view
-        returns (bytes[] memory, bytes[] memory)
-    {
-        return (testCases[testCaseId].input, testCases[testCaseId].output);
-    }
-
-    function setWinnerShare(uint256 _winnerShare) public override {
+    function setWinnerShare(uint256 _winnerShare) public onlyOwner {
         winnerShare = _winnerShare;
     }
+
+    function verify(address answerAddr, uint256 testCaseId)
+        public
+        virtual
+        returns (bool);
 }

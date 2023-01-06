@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.6;
 
-import "./TestCase.sol";
-import "./Question.sol";
 import "./Answer.sol";
+import "./Question.sol";
 
 contract Verifier {
     address payable public owner;
@@ -11,20 +10,10 @@ contract Verifier {
     mapping(uint256 => uint256[2]) public prizePool;
     mapping(uint256 => address payable) public winner;
 
-    // event TestFailed(
-    //     uint256 testCaseId,
-    //     TestCase testCase,
-    //     bytes[] expected,
-    //     bytes[] actual
-    // );
-    // event TestPassed(
-    //     uint256 testCaseId,
-    //     TestCase testCase,
-    //     bytes[] expected,
-    //     bytes[] actual
-    // );
-    // event WinnerAssigned(uint256 questionId, address winner);
-    // event Rewarded(uint256 questionId, address winner, uint256 rewardToWinner);
+    event TestFailed(uint256 testCaseId);
+    event TestPassed(uint256 testCaseId);
+    event WinnerAssigned(uint256 questionId, address winner);
+    event Rewarded(uint256 questionId, address winner, uint256 rewardToWinner);
 
     constructor() {
         owner = payable(msg.sender);
@@ -33,6 +22,13 @@ contract Verifier {
     modifier onlyOwner() {
         require(msg.sender == owner, "Not owner");
         _;
+    }
+
+    function registerQuestion(address questionAddr) public payable {
+        require(msg.value >= 1, "Must pay at least 1 sun to register.");
+        uint256 questionId = registeredQuestionList.length;
+        registeredQuestionList.push(questionAddr);
+        deposit(questionId, msg.value);
     }
 
     function verify(uint256 _questionId, address answerAddr)
@@ -58,23 +54,21 @@ contract Verifier {
 
         bool isAllTestPassed = true;
 
-        TestCase[] memory testCases = _getTestCase(_questionId);
+        Question question = Question(registeredQuestionList[_questionId]);
 
-        uint256 arrLength = testCases.length;
+        uint256 testCaseCount = question.testCaseCount();
 
-        require(arrLength > 0, "No test cases available for this question.");
+        require(
+            testCaseCount > 0,
+            "No test cases available for this question."
+        );
 
-        for (uint256 i = 0; i < arrLength; i++) {
-            bytes[] memory expected = testCases[i].output;
-            bytes[] memory actual = Answer(answerAddr).main(testCases[i].input);
-
-            if (
-                keccak256(abi.encode(expected)) != keccak256(abi.encode(actual))
-            ) {
-                // emit TestFailed(i, testCases[i], expected, actual);
+        for (uint256 i = 0; i < testCaseCount; i++) {
+            if (!question.verify(answerAddr, i)) {
                 isAllTestPassed = false;
+                emit TestFailed(i);
             } else {
-                // emit TestPassed(i, testCases[i], expected, actual);
+                emit TestPassed(i);
             }
         }
 
@@ -82,17 +76,10 @@ contract Verifier {
             //Assign winner
             winner[_questionId] = answerOwner;
 
-            // emit WinnerAssigned(_questionId, answerOwner);
+            emit WinnerAssigned(_questionId, answerOwner);
         }
 
         return isAllTestPassed;
-    }
-
-    function registerQuestion(address questionAddr) public payable {
-        require(msg.value >= 1, "Must pay at least 1 sun to register.");
-        uint256 questionId = registeredQuestionList.length;
-        registeredQuestionList.push(questionAddr);
-        deposit(questionId, msg.value);
     }
 
     function withdrawByWinner(uint256 _questionId) public {
@@ -112,7 +99,7 @@ contract Verifier {
         // Send reward to the winner
         winnerAddr.transfer(rewardToWinner);
 
-        // emit Rewarded(_questionId, winnerAddr, rewardToWinner);
+        emit Rewarded(_questionId, winnerAddr, rewardToWinner);
     }
 
     function withdrawByQuestionOwner(uint256 _questionId) public {
@@ -150,18 +137,8 @@ contract Verifier {
         prizePool[_questionId][1] += prizeForQuestionOwner;
     }
 
-    function _getTestCase(uint256 _questionId)
-        private
-        view
-        returns (TestCase[] memory)
-    {
-        // Get contract address of the question that need to be verified
-        address questionAddr = registeredQuestionList[_questionId];
-        return Question(questionAddr).getTestCases();
-    }
-
     function _getAnswerOwner(address answerAddr)
-        private
+        public
         view
         returns (address payable)
     {
@@ -187,9 +164,5 @@ contract Verifier {
     {
         address questionAddr = registeredQuestionList[_questionId];
         return Question(questionAddr).winnerShare();
-    }
-
-    function getQuestionCount() public view returns (uint count) {
-        return registeredQuestionList.length;
     }
 }
