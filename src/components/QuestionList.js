@@ -12,6 +12,7 @@ const QuestionList = () => {
   let questionCount = useSelector((state) => state.rooter.questionCount);
   const verifierAddr = process.env.REACT_APP_verifier;
   const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [verifierObj, setVerifierObj] = useState(null);
   const [questionAddress, setQuestionAddress] = useState("");
   const [callValue, setCallValue] = useState(100);
@@ -37,6 +38,7 @@ const QuestionList = () => {
   useEffect(() => {
     const fetchQuestionList = async () => {
       if (tronObj && tronObj.tronWeb && verifierObj) {
+        setLoading(true);
         let tmpList = [];
         try {
           for (let i = items.length; i < questionCount && items.length < questionCount; i++) {
@@ -50,8 +52,10 @@ const QuestionList = () => {
             tmpList.push({ index: i, title: `${i}. ${title}`, desc: desc, winner: winner });
           }
           setItems((items) => [...items, ...tmpList]);
+          setLoading(false);
         } catch (err) {
           console.error("fetchQuestionList", err);
+          setLoading(false);
         }
       }
     };
@@ -114,7 +118,7 @@ const QuestionList = () => {
   return (
     <>
       <div className="left">
-        <Table rowKey="index" columns={columns} dataSource={items}></Table>
+        <Table rowKey="index" columns={columns} dataSource={items} loading={loading}></Table>
       </div>
       <div className="group-line"></div>
       <div className="right">

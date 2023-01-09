@@ -4,6 +4,11 @@
     /* height: 400px; */
 }
 
+.question-box-spin {
+    text-align: center;
+    padding-top: 4rem;
+}
+
 .question-title-a {
     color: rgba(0, 0, 0, 0.88);
 }

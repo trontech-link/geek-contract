@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
-import { Form, Button, Input, InputNumber, message } from "antd";
+import { Spin, Form, Button, Input, InputNumber, message } from "antd";
 import "../assets/styles/question.css";
 import { setQuestionCount } from "../store/rootReducer";
 import { triggerConstant, checkQuestionId } from "../utils/commonUtils";
@@ -13,10 +13,10 @@ const Question = () => {
   const tronObj = useSelector((state) => state.rooter.tronObj);
   const currentAccount = useSelector((state) => state.rooter.currentAccount);
   const verifierAddr = process.env.REACT_APP_verifier;
+
+  const [loading, setLoading] = useState(false);
   const [questionInfo, setQuestionInfo] = useState({});
-
   const [answerAddress, setAnswerAddress] = useState("");
-
   const [verifierObj, setVerifierObj] = useState(null);
   const [callValue, setCallValue] = useState(100);
 
@@ -34,6 +34,7 @@ const Question = () => {
   useEffect(() => {
     async function fetchQuestionInfo() {
       if (tronObj && tronObj.tronWeb && verifierObj) {
+        setLoading(true);
         const tronWeb = tronObj.tronWeb;
         try {
           const questionCountHex = await triggerConstant(verifierObj, "getQuestionCount");
@@ -88,8 +89,10 @@ const Question = () => {
             }
             dispatch(setQuestionCount(cnt));
           }
+          setLoading(false);
         } catch (err) {
           console.log("fetchQuestionInfo", err);
+          setLoading(false);
         }
       }
     }
@@ -210,19 +213,29 @@ const Question = () => {
   return (
     <>
       <div className="left">
-        <div className="question-box">
-          <div className="question-title">
-            <h2 className="question-title-text">{buildQuestionTitle()}</h2>
-          </div>
-          <div className="question-description">
-            <p className="question-description-text">
-              {questionInfo && questionInfo.description && questionInfo.description}
-            </p>
-          </div>
-          <div className="question-testcases">
-            {questionInfo && questionInfo.firstTestCase && questionInfo.firstTestCase}
-          </div>
-        </div>
+        {
+          loading ? (
+            <div className="question-box-spin">
+
+              <Spin />
+            </div>
+          ) : (
+
+            <div className="question-box">
+              <div className="question-title">
+                <h2 className="question-title-text">{buildQuestionTitle()}</h2>
+              </div>
+              <div className="question-description">
+                <p className="question-description-text">
+                  {questionInfo && questionInfo.description && questionInfo.description}
+                </p>
+              </div>
+              <div className="question-testcases">
+                {questionInfo && questionInfo.firstTestCase && questionInfo.firstTestCase}
+              </div>
+            </div>
+          )
+        }
       </div>
       <div className="group-line"></div>
       <div className="right">
