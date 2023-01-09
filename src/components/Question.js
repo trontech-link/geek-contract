@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { Spin, Form, Button, Input, InputNumber, message } from "antd";
+import { CodeOutlined } from "@ant-design/icons";
 import "../assets/styles/question.css";
 import { setQuestionCount } from "../store/rootReducer";
 import { triggerConstant, checkQuestionId } from "../utils/commonUtils";
@@ -213,37 +214,48 @@ const Question = () => {
   return (
     <>
       <div className="left">
-        {
-          loading ? (
-            <div className="question-box-spin">
-
-              <Spin />
+        {loading ? (
+          <div className="question-box-spin">
+            <Spin />
+          </div>
+        ) : (
+          <div className="question-box">
+            <div className="question-title">
+              <h2 className="question-title-text">{buildQuestionTitle()}</h2>
             </div>
-          ) : (
-
-            <div className="question-box">
-              <div className="question-title">
-                <h2 className="question-title-text">{buildQuestionTitle()}</h2>
-              </div>
-              <div className="question-description">
-                <p className="question-description-text">
-                  {questionInfo && questionInfo.description && questionInfo.description}
-                </p>
-              </div>
-              <div className="question-testcases">
-                {questionInfo && questionInfo.firstTestCase && questionInfo.firstTestCase}
-              </div>
+            <div className="question-description">
+              <p className="question-description-text">
+                {questionInfo && questionInfo.description && questionInfo.description}
+              </p>
             </div>
-          )
-        }
+            <div className="question-testcases">
+              {questionInfo && questionInfo.firstTestCase && questionInfo.firstTestCase}
+            </div>
+            <div className="code-answer">
+              <Button
+                type="primary"
+                className="btn"
+                icon={<CodeOutlined />}
+                onClick={() =>
+                  window.open(
+                    "https://tronide.io/#version=soljson_v0.8.6+commit.0e36fba.js&optimize=false&runs=200&gist=9ec9627ea8d2878bc500c9f06676ade3",
+                    "_blank"
+                  )
+                }
+              >
+                Code Answer
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
       <div className="group-line"></div>
       <div className="right">
         <div className="verify-box">
-          <Form name="basic" labelCol={{ span: 4 }} wrapperCol={{ span: 16 }}>
+          <Form name="basic" className="form" labelCol={{ span: 5 }} wrapperCol={{ span: 16 }}>
             <Form.Item label="Answer Address">
               <Input
-                className="answer-address"
+                className="input"
                 placeholder="Answer Address"
                 onChange={(e) => setAnswerAddress(e.target.value)}
                 defaultValue={answerAddress}
@@ -260,7 +272,7 @@ const Question = () => {
                 addonAfter="sun (1 TRX = 1,000,000 SUN)"
               />
             </Form.Item>
-            <Form.Item wrapperCol={{ offset: 4, span: 16 }}>
+            <Form.Item wrapperCol={{ offset: 5, span: 16 }}>
               <Button type="primary" className="btn" onClick={handleVerify}>
                 Verify
               </Button>

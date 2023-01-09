@@ -1,8 +1,7 @@
-// This contract should be created and deployed by the participant. Below is just an example.
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.6;
 
-abstract contract Question {
+abstract contract AbstractQuestion {
     address payable public owner;
     string public title;
     string public description;

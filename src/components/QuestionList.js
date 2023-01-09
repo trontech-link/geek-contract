@@ -100,7 +100,17 @@ const QuestionList = () => {
         if (winner && winner !== "410000000000000000000000000000000000000000") {
           return <TrophyFilled style={{ color: "#FFD700" }} />;
         } else {
-          return <CodeFilled style={{ color: "#00A300" }} />;
+          return (
+            <CodeFilled
+              style={{ color: "#00A300" }}
+              onClick={() =>
+                window.open(
+                  "https://tronide.io/#version=soljson_v0.8.6+commit.0e36fba.js&optimize=false&runs=200&gist=9ec9627ea8d2878bc500c9f06676ade3",
+                  "_blank"
+                )
+              }
+            />
+          );
         }
       },
     },
@@ -123,7 +133,7 @@ const QuestionList = () => {
       <div className="group-line"></div>
       <div className="right">
         <div className="register-question-box">
-          <Form name="basic" labelCol={{ span: 4 }} wrapperCol={{ span: 16 }}>
+          <Form name="basic" labelCol={{ span: 6 }} wrapperCol={{ span: 16 }}>
             <Form.Item label="Question Address">
               <Input
                 className="input"
@@ -143,7 +153,7 @@ const QuestionList = () => {
                 addonAfter="sun (1 TRX = 1,000,000 SUN)"
               />
             </Form.Item>
-            <Form.Item wrapperCol={{ offset: 4, span: 12 }}>
+            <Form.Item wrapperCol={{ offset: 6, span: 16 }}>
               <Button type="primary" className="btn" onClick={handleRegisterQuestion}>
                 Register Question
               </Button>

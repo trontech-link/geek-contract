@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.6;
 
-import "./Question.sol";
-import "./Answer.sol";
+import "./AbstractQuestion.sol";
+import "./AbstractAnswer.sol";
 
 contract Verifier {
     address payable public owner;
@@ -32,7 +32,7 @@ contract Verifier {
         deposit(_questionId, msg.value);
 
         address questionAddr = registeredQuestionList[_questionId];
-        Question question = Question(questionAddr);
+        AbstractQuestion question = AbstractQuestion(questionAddr);
         (bool isPassed, uint testCaseId) = question.verify(answerAddr);
 
         if (isPassed) {
@@ -106,17 +106,17 @@ contract Verifier {
     }
 
     function _getAnswerOwner(address answerAddr) private view returns (address payable){
-        return Answer(answerAddr).owner();
+        return AbstractAnswer(answerAddr).owner();
     }
 
     function _getQuestionOwner(uint256 _questionId) private view returns (address payable){
         address questionAddr = registeredQuestionList[_questionId];
-        return Question(questionAddr).owner();
+        return AbstractQuestion(questionAddr).owner();
     }
 
     function _getWinnerShare(uint256 _questionId) private view returns (uint256){
         address questionAddr = registeredQuestionList[_questionId];
-        return Question(questionAddr).winnerShare();
+        return AbstractQuestion(questionAddr).winnerShare();
     }
 
     function getQuestionCount() public view returns (uint count) {

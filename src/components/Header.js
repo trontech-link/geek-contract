@@ -65,11 +65,7 @@ const AppHeader = () => {
             if (window.tronLink.ready) {
               return resolve(window.tronLink);
             }
-          } else if (
-            window.tronWeb &&
-            window.tronWeb.defaultAddress &&
-            window.tronWeb.defaultAddress.base58
-          ) {
+          } else if (window.tronWeb && window.tronWeb.defaultAddress && window.tronWeb.defaultAddress.base58) {
             clearInterval(tmpTimer);
             return resolve(window.tronWeb);
           }
@@ -101,7 +97,7 @@ const AppHeader = () => {
           const res = tronLink.request({ method: "tron_requestAccounts" });
           console.log(`tron_requestAccounts res = ${JSON.stringify(res)}`);
           if (!res.code) {
-            message.info("Please create or import wallet account via TronLink");
+            message.info("Please check your TronLink connection");
             return;
           } else {
             if (res.code === 200) {
@@ -111,7 +107,7 @@ const AppHeader = () => {
               return;
             }
             if (res.code === 4001) {
-              console.log("Please check TronLink chrome extension");
+              console.log("Please check your TronLink connection");
             }
           }
           closeConnect();
@@ -194,7 +190,9 @@ const AppHeader = () => {
             <LeftOutlined />
           </Button>
           <span className="question-list">
-            <Button type="text" onClick={() => navigate("/")}><MenuOutlined /> Question List</Button>
+            <Button type="text" onClick={() => navigate("/")}>
+              <MenuOutlined /> Question List
+            </Button>
           </span>
           <Button onClick={nextQuestion}>
             <RightOutlined />
@@ -205,9 +203,7 @@ const AppHeader = () => {
       )}
       <div className="flex header-right">
         <Button className="connect-wallet" onClick={initTronLinkWallet}>
-          {currentAccount && currentAccount.length > 0
-            ? currentAccount
-            : "Connect Wallet"}
+          {currentAccount && currentAccount.length > 0 ? currentAccount : "Connect Wallet"}
         </Button>
       </div>
     </nav>

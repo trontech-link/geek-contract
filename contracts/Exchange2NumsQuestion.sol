@@ -1,13 +1,14 @@
+// This contract should be created and deployed by the participant. Below is just an example.
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.6;
 
-import "./Question.sol";
+import "./AbstractQuestion.sol";
 
 interface Answer {
     function main(uint256[] memory _input) external returns (uint256[] memory _output);
 }
 
-contract Exchange2NumsQuestion is Question("Exchange 2 nums", "exchange 2 num", 80, "uint256[]", "uint256[]") {
+contract Exchange2NumsQuestion is AbstractQuestion("Exchange 2 nums", "exchange 2 num", 80, "uint256[]", "uint256[]") {
     struct TestCase {
         uint256[] input;
         uint256[] output;

@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.6;
 
-import "./Answer.sol";
+import "./AbstractAnswer.sol";
 
-contract Exchange2NumsAnswer is Answer {
+contract Exchange2NumsAnswer is AbstractAnswer {
 
     function main(uint256[] memory input) public pure returns (uint256[] memory){
         uint256[] memory output = new uint256[](2);

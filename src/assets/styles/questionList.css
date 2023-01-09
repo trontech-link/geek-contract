@@ -11,9 +11,9 @@
   width: 100%;
 }
 
-.register-question-box > .input {
+.register-question-box .input {
   margin-right: 20px;
-  width: 50%;
+  width: 85%;
 }
 
 .btn {
