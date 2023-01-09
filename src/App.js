@@ -15,6 +15,10 @@ const router = createBrowserRouter([
       {
         path: "questions/:questionId",
         element: <Question />,
+      },
+      {
+        path: '*',
+        element: <PageNotFound />
       }
     ]
   },
