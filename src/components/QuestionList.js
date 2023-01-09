@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { Link } from "react-router-dom";
 import { Table, message, Input, InputNumber, Button, Form } from "antd";
 import { TrophyFilled, CodeFilled } from "@ant-design/icons";
 import { setQuestionCount } from "../store/rootReducer";
@@ -118,9 +119,9 @@ const QuestionList = () => {
       title: "Title",
       key: "title",
       render: (item) => (
-        <a className="question-title-a" href={`questions/${item.index}`}>
+        <Link className="question-title-a" to={`questions/${item.index}`}>
           {item.title}
-        </a>
+        </Link>
       ),
     },
   ];

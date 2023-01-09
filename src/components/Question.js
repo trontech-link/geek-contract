@@ -34,10 +34,14 @@ const Question = () => {
 
   const buildFirstTestCase = useCallback((tc) => {
     const f = (p) => {
-      if (Array.isArray(p)) {
-        return `[${p.map((i) => tronObj.tronWeb.toDecimal(i)).join(", ")}]`;
+      if (p) {
+        if (Array.isArray(p)) {
+          return `[${p.map((i) => tronObj.tronWeb.toDecimal(i)).join(", ")}]`;
+        } else {
+          return tronObj.tronWeb.toAscii(p);
+        }
       } else {
-        return tronObj.tronWeb.fromHex(p);
+        return "";
       }
     };
     if (tc) {

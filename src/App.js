@@ -4,11 +4,13 @@ import './assets/styles/App.css';
 import Question from './components/Question';
 import Main from './components/Main';
 import { useSelector } from 'react-redux';
+import PageNotFound from './components/PageNotFound';
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: <Main />,
+    errorElement: <PageNotFound />,
     children: [
       {
         path: "questions/:questionId",
@@ -16,7 +18,10 @@ const router = createBrowserRouter([
       }
     ]
   },
-]);
+],
+{
+  basename: "/geek-contract"
+});
 
 function App() {
   console.log("App.js connectStatus=" + useSelector(state => state.rooter.connectStatus));
