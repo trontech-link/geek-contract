@@ -40,10 +40,7 @@ jobs:
           echo REACT_APP_tronweb_fullHost=${{ secrets.FULL_HOST }} >> .env
           echo REACT_APP_tronweb_apikey=${{ secrets.API_KEY }} >> .env
           echo REACT_APP_verifier=${{ secrets.VERIFIER }} >> .env
-          echo REACT_APP_test_case_abi_temp=${{ secrets.TEST_CASE_ABI_TEMP }} >> .env
-          cat .env
-          ls -la
-          pwd
+          echo REACT_APP_test_case_abi_temp="[{\"components\":[{\"name\":\"input\",\"type\":\"inputType\"},{\"name\":\"output\",\"type\":\"outputType\"}],\"name\":\"\",\"type\":\"tuple\"}]" >> .env
 
       - name: npm install, build
         run: |
