@@ -15,6 +15,7 @@ const router = createBrowserRouter([
       {
         path: "questions/:questionId",
         element: <Question />,
+        errorElement: <PageNotFound />,
       },
       {
         path: '*',
@@ -23,9 +24,9 @@ const router = createBrowserRouter([
     ]
   },
 ],
-{
-  basename: "/geek-contract"
-});
+  {
+    basename: "/geek-contract"
+  });
 
 function App() {
   console.log("App.js connectStatus=" + useSelector(state => state.rooter.connectStatus));
