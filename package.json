@@ -1,5 +1,5 @@
 {
-  "name": "front",
+  "name": "geek-contract",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -48,5 +48,5 @@
     ]
   },
   "proxy": "https://api.nileex.io",
-  "homepage": "https://trontech-link.github.io/geek-contract/"
+  "homepage": "/"
 }
