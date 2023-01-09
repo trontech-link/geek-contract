@@ -23,6 +23,8 @@ jobs:
     strategy:
       matrix:
         node-version: [19.x]
+    
+    environment: github-pages
 
     steps:
       - uses: actions/checkout@v3
@@ -31,6 +33,17 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: '19.x'
+
+      - name: Create env file
+        run: |
+          touch .env
+          echo REACT_APP_tronweb_fullHost=${{ secrets.FULL_HOST }} >> .env
+          echo REACT_APP_tronweb_apikey=${{ secrets.API_KEY }} >> .env
+          echo REACT_APP_verifier=${{ secrets.VERIFIER }} >> .env
+          echo REACT_APP_test_case_abi_temp=${{ secrets.TEST_CASE_ABI_TEMP }} >> .env
+          cat .env
+          ls -la
+          pwd
 
       - name: npm install, build
         run: |
