@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { Spin, Form, Button, Input, InputNumber, message } from "antd";
@@ -31,6 +31,30 @@ const Question = () => {
     }
     initVerifier();
   }, [dispatch, tronObj, verifierAddr]);
+
+  const buildFirstTestCase = useCallback((tc) => {
+    const f = (p) => {
+      if (Array.isArray(p)) {
+        return `[${p.map((i) => tronObj.tronWeb.toDecimal(i)).join(", ")}]`;
+      } else {
+        return tronObj.tronWeb.fromHex(p);
+      }
+    };
+    if (tc) {
+      return (
+        <>
+          <h3>Test Case</h3>
+          <p>
+            input {f(tc[0].input)}
+            <br />
+            output {f(tc[0].output)}
+          </p>
+        </>
+      );
+    } else {
+      return <></>;
+    }
+  }, [tronObj.tronWeb]);
 
   useEffect(() => {
     async function fetchQuestionInfo() {
@@ -99,7 +123,7 @@ const Question = () => {
     }
 
     fetchQuestionInfo();
-  }, [dispatch, questionId, tronObj, verifierAddr, verifierObj]);
+  }, [buildFirstTestCase, dispatch, questionId, testCaseAbi, tronObj, verifierAddr, verifierObj]);
 
   const handleVerify = async () => {
     if (tronObj && tronObj.tronWeb && verifierObj) {
@@ -128,29 +152,6 @@ const Question = () => {
     }
   };
 
-  const buildFirstTestCase = (tc) => {
-    const f = (p) => {
-      if (Array.isArray(p)) {
-        return `[${p.map((i) => tronObj.tronWeb.toDecimal(i)).join(", ")}]`;
-      } else {
-        return tronObj.tronWeb.fromHex(p);
-      }
-    };
-    if (tc) {
-      return (
-        <>
-          <h3>Test Case</h3>
-          <p>
-            input {f(tc[0].input)}
-            <br />
-            output {f(tc[0].output)}
-          </p>
-        </>
-      );
-    } else {
-      return <></>;
-    }
-  };
 
   const isWinner = () => {
     if (questionInfo && questionInfo.winner && questionInfo.winnerPrize) {
