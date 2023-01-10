@@ -50,7 +50,7 @@ abstract contract AbstractQuestion {
         outputType = _outputType;
     }
     
-    function verify(address answerAddr) public virtual returns (bool, uint256);
+    function verify(address answerAddr, uint256 testCaseId) public virtual returns (bool);
 
     // return encoded TestCase
     function getTestCasesById(uint256 testCaseId) public view virtual returns (bytes memory);
