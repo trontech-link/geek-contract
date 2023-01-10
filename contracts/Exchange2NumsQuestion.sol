@@ -27,20 +27,15 @@ contract Exchange2NumsQuestion is AbstractQuestion("Exchange 2 nums", "exchange 
         testCases[testCaseId] = testCase;
     }
 
-    function verify(address answerAddr) public override returns (bool isPassed, uint256 testCaseId){
-        uint256 arrLength = testCases.length;
-        require(arrLength > 0, "No test cases available for this question.");
+    function verify(address answerAddr, uint256 testCaseId) public override returns (bool) {
+        uint256[] memory expected = testCases[testCaseId].output;
+        uint256[] memory actual = Answer(answerAddr).main(testCases[testCaseId].input);
 
-        for (uint256 i = 0; i < arrLength; i++) {
-            uint256[] memory expected = testCases[i].output;
-            uint256[] memory actual = Answer(answerAddr).main(testCases[i].input);
-
-            if (keccak256(abi.encode(expected)) != keccak256(abi.encode(actual))) {
-                return (false, i);
-            }
+        if (keccak256(abi.encode(expected)) != keccak256(abi.encode(actual))) {
+            return false;
+        } else {
+            return true;
         }
-
-        return (true, 0);
     }
 
     function getTestCasesById(uint256 testCaseId) public view override returns (bytes memory){

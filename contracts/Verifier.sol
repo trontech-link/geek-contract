@@ -23,8 +23,17 @@ contract Verifier {
         _;
     }
 
-    function verify(uint256 _questionId, address answerAddr) public payable returns (bool){
-        require(winner[_questionId] == address(0), "A winner had been assigned for this question.");
+    function verify(uint256 _questionId, address answerAddr) public payable returns (bool) {
+        // Only answer owner can verify their answer
+        address payable answerOwner = _getAnswerOwner(answerAddr);
+        require(
+            msg.sender == answerOwner,
+            "Only answer owner can verify their answer"
+        );
+        require(
+            winner[_questionId] == address(0),
+            "A winner had been assigned for this question."
+        );
 
         require(msg.value >= 1, "Must pay at least 1 sun to verify.");
 
@@ -33,18 +42,27 @@ contract Verifier {
 
         address questionAddr = registeredQuestionList[_questionId];
         AbstractQuestion question = AbstractQuestion(questionAddr);
-        (bool isPassed, uint testCaseId) = question.verify(answerAddr);
+        uint256 testCaseCount = question.testCaseCount();
+        require(
+            testCaseCount > 0,
+            "No test cases available for this question."
+        );
 
-        if (isPassed) {
-            //Get answer's owner's address
-            address payable answerOwner = _getAnswerOwner(answerAddr);
+        bool isAllTestPassed = true;
+
+        for (uint256 i = 0; i < testCaseCount; i++) {
+            if (!question.verify(answerAddr, i)) {
+                isAllTestPassed = false;
+                emit TestFailed(_questionId, i);
+            }
+        }
+
+        if (isAllTestPassed) {
             //Assign winner
             winner[_questionId] = answerOwner;
             emit WinnerAssigned(_questionId, answerOwner);
-        } else {
-            emit TestFailed(_questionId, testCaseId);
         }
-        return isPassed;
+        return isAllTestPassed;
     }
 
     function registerQuestion(address questionAddr) public payable {
