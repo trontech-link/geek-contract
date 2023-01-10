@@ -11,6 +11,7 @@ contract Verifier {
     mapping(uint256 => address payable) public winner;
 
     event TestFailed(uint256 questionId, uint256 testCaseId);
+    event TestPassed(uint256 questionId, uint256 testCaseId);
     event WinnerAssigned(uint256 questionId, address winner);
     event Rewarded(uint256 questionId, address winner, uint256 rewardToWinner);
 
@@ -23,8 +24,28 @@ contract Verifier {
         _;
     }
 
-    function verify(uint256 _questionId, address answerAddr) public payable returns (bool){
-        require(winner[_questionId] == address(0), "A winner had been assigned for this question.");
+    function registerQuestion(address questionAddr) public payable {
+        require(msg.value >= 1, "Must pay at least 1 sun to register.");
+        uint256 questionId = registeredQuestionList.length;
+        registeredQuestionList.push(questionAddr);
+        deposit(questionId, msg.value);
+    }
+
+    function verify(uint256 _questionId, address answerAddr)
+        public
+        payable
+        returns (bool)
+    {
+        // Only answer owner can verify their answer
+        address payable answerOwner = _getAnswerOwner(answerAddr);
+        require(
+            msg.sender == answerOwner,
+            "Only answer owner can verify their answer"
+        );
+        require(
+            winner[_questionId] == address(0),
+            "A winner had been assigned for this question."
+        );
 
         require(msg.value >= 1, "Must pay at least 1 sun to verify.");
 
@@ -33,31 +54,38 @@ contract Verifier {
 
         address questionAddr = registeredQuestionList[_questionId];
         Question question = Question(questionAddr);
-        (bool isPassed, uint testCaseId) = question.verify(answerAddr);
+        uint256 testCaseCount = question.testCaseCount();
+        require(
+            testCaseCount > 0,
+            "No test cases available for this question."
+        );
 
-        if (isPassed) {
-            //Get answer's owner's address
-            address payable answerOwner = _getAnswerOwner(answerAddr);
+        bool isAllTestPassed = true;
+
+        for (uint256 i = 0; i < testCaseCount; i++) {
+            if (!question.verify(answerAddr, i)) {
+                isAllTestPassed = false;
+                emit TestFailed(_questionId, i);
+            } else {
+                emit TestPassed(_questionId, i);
+            }
+        }
+
+        if (isAllTestPassed) {
             //Assign winner
             winner[_questionId] = answerOwner;
             emit WinnerAssigned(_questionId, answerOwner);
-        } else {
-            emit TestFailed(_questionId, testCaseId);
         }
-        return isPassed;
-    }
-
-    function registerQuestion(address questionAddr) public payable {
-        require(msg.value >= 1, "Must pay at least 1 sun to register.");
-        uint256 questionId = registeredQuestionList.length;
-        registeredQuestionList.push(questionAddr);
-        deposit(questionId, msg.value);
+        return isAllTestPassed;
     }
 
     function withdrawByWinner(uint256 _questionId) public {
         // Get winner's address
         address payable winnerAddr = winner[_questionId];
-        require(winnerAddr != address(0) && winnerAddr == msg.sender, "Only winner can take the prize.");
+        require(
+            winnerAddr != address(0) && winnerAddr == msg.sender,
+            "Only winner can take the prize."
+        );
 
         // Get the reward amount to winner
         uint256 rewardToWinner = prizePool[_questionId][0];
@@ -105,21 +133,33 @@ contract Verifier {
         prizePool[_questionId][1] += prizeForQuestionOwner;
     }
 
-    function _getAnswerOwner(address answerAddr) private view returns (address payable){
+    function _getAnswerOwner(address answerAddr)
+        private
+        view
+        returns (address payable)
+    {
         return Answer(answerAddr).owner();
     }
 
-    function _getQuestionOwner(uint256 _questionId) private view returns (address payable){
+    function _getQuestionOwner(uint256 _questionId)
+        private
+        view
+        returns (address payable)
+    {
         address questionAddr = registeredQuestionList[_questionId];
         return Question(questionAddr).owner();
     }
 
-    function _getWinnerShare(uint256 _questionId) private view returns (uint256){
+    function _getWinnerShare(uint256 _questionId)
+        private
+        view
+        returns (uint256)
+    {
         address questionAddr = registeredQuestionList[_questionId];
         return Question(questionAddr).winnerShare();
     }
 
-    function getQuestionCount() public view returns (uint count) {
+    function getQuestionCount() public view returns (uint256 count) {
         return registeredQuestionList.length;
     }
 }
