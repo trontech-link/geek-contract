@@ -27,7 +27,7 @@ const AppHeader = () => {
       dispatch(setConnectStatus(true));
       const account = tronWeb.defaultAddress.base58;
       dispatch(setCurrentAccount(account));
-      console.log("currentAccount=" + account);
+      console.log("currentAccount=", account);
     };
 
     try {

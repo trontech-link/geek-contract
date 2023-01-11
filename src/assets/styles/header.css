@@ -10,6 +10,7 @@
 
 
 .header-left {
+    width: 19rem;
 }
 
 .header-left > .tron-logo {
@@ -21,8 +22,6 @@
 }
 
 .header-center {
-    position: absolute;
-    left: 41%;
     align-items: center;
 }
 
@@ -35,6 +34,7 @@
 }
 
 .header-right {
+    width: 19rem;
 }
 
 .header-right > .connect-wallet {
