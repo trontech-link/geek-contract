@@ -11,15 +11,15 @@ function App() {
   return (
     <BrowserRouter basename='geek-contract'>
       <Layout>
-      <AppHeader />
-      <div className="main flex">
-        <Routes>
-          <Route path='/' element={<QuestionList />} />
-          <Route path='/questions/:questionId' element={<Question />} />
-          <Route element={<PageNotFound />} />
-        </Routes>
-      </div>
-    </Layout>
+        <AppHeader />
+        <div className="main flex">
+          <Routes>
+            <Route path='/' element={<QuestionList />} />
+            <Route path='/questions/:questionId' element={<Question />} />
+            <Route element={<PageNotFound />} />
+          </Routes>
+        </div>
+      </Layout>
     </BrowserRouter>
   );
 }
