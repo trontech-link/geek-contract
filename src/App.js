@@ -11,18 +11,26 @@ const router = createBrowserRouter([
     path: "/",
     element: <Main />,
     errorElement: <PageNotFound />,
-    children: [
-      {
-        path: "questions/:questionId",
-        element: <Question />,
-        errorElement: <PageNotFound />,
-      },
-      {
-        path: '*',
-        element: <PageNotFound />
-      }
-    ]
+    // children: [
+    //   {
+    //     path: "questions/:questionId",
+    //     element: <Question />,
+    //     errorElement: <PageNotFound />,
+    //   },
+    //   {
+    //     path: '*',
+    //     element: <PageNotFound />
+    //   }
+    // ]
   },
+  {
+    path: "/questions/:questionId",
+    element: <Question />,
+    errorElement: <PageNotFound/>
+  },
+  {
+    element: <PageNotFound/>
+  }
 ],
   {
     basename: "/geek-contract"
