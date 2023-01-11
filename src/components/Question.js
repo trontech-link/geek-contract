@@ -4,7 +4,7 @@ import { useParams } from "react-router-dom";
 import { Spin, Form, Button, Input, InputNumber, message } from "antd";
 import { CodeOutlined } from "@ant-design/icons";
 import "../assets/styles/question.css";
-import { setQuestionCount } from "../store/rootReducer";
+import { setQuestionCount, setCurrentQuestion } from "../store/rootReducer";
 import { triggerConstant, checkQuestionId } from "../utils/commonUtils";
 
 const Question = () => {
@@ -22,6 +22,10 @@ const Question = () => {
   const [callValue, setCallValue] = useState(100);
 
   useEffect(() => {
+    dispatch(setCurrentQuestion(questionId));
+  })
+
+  useEffect(() => {
     async function initVerifier() {
       if (tronObj && tronObj.tronWeb) {
         const tronWeb = tronObj.tronWeb;
@@ -30,7 +34,7 @@ const Question = () => {
       }
     }
     initVerifier();
-  }, [dispatch, tronObj, verifierAddr]);
+  }, [tronObj, verifierAddr]);
 
   const buildFirstTestCase = useCallback((tc) => {
     const f = (p) => {
