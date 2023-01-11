@@ -1,16 +1,16 @@
 {
   "files": {
-    "main.css": "/geek-contract/static/css/main.6995c5ea.css",
-    "main.js": "/geek-contract/static/js/main.24a9a34a.js",
+    "main.css": "/geek-contract/static/css/main.f9709936.css",
+    "main.js": "/geek-contract/static/js/main.e44c17b5.js",
     "static/js/787.027ffaaa.chunk.js": "/geek-contract/static/js/787.027ffaaa.chunk.js",
     "static/media/tron.svg": "/geek-contract/static/media/tron.f4ceeb122ec14c36ef3322b7dcbe85e0.svg",
     "index.html": "/geek-contract/index.html",
-    "main.6995c5ea.css.map": "/geek-contract/static/css/main.6995c5ea.css.map",
-    "main.24a9a34a.js.map": "/geek-contract/static/js/main.24a9a34a.js.map",
+    "main.f9709936.css.map": "/geek-contract/static/css/main.f9709936.css.map",
+    "main.e44c17b5.js.map": "/geek-contract/static/js/main.e44c17b5.js.map",
     "787.027ffaaa.chunk.js.map": "/geek-contract/static/js/787.027ffaaa.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.6995c5ea.css",
-    "static/js/main.24a9a34a.js"
+    "static/css/main.f9709936.css",
+    "static/js/main.e44c17b5.js"
   ]
 }
