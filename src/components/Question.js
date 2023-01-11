@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { Spin, Form, Button, Input, InputNumber, message } from "antd";
@@ -26,58 +26,49 @@ const Question = () => {
   })
 
   useEffect(() => {
-    async function initVerifier() {
-      if (tronObj && tronObj.tronWeb) {
-        const tronWeb = tronObj.tronWeb;
-        let verifier = await tronWeb.contract().at(verifierAddr);
-        setVerifierObj(verifier);
-      }
-    }
-    initVerifier();
-  }, [tronObj, verifierAddr]);
-
-  const buildFirstTestCase = useCallback((tc) => {
-    const f = (p) => {
-      if (p) {
-        if (Array.isArray(p)) {
-          return `[${p.map((i) => tronObj.tronWeb.toDecimal(i)).join(", ")}]`;
+    const buildFirstTestCase = (tc) => {
+      const f = (p) => {
+        if (p) {
+          if (Array.isArray(p)) {
+            return `[${p.map((i) => tronObj.tronWeb.toDecimal(i)).join(", ")}]`;
+          } else {
+            return tronObj.tronWeb.toAscii(p);
+          }
         } else {
-          return tronObj.tronWeb.toAscii(p);
+          return "";
         }
+      };
+      if (tc) {
+        return (
+          <>
+            <h3>Test Case</h3>
+            <p>
+              input {f(tc[0].input)}
+              <br />
+              output {f(tc[0].output)}
+            </p>
+          </>
+        );
       } else {
-        return "";
+        return <></>;
       }
     };
-    if (tc) {
-      return (
-        <>
-          <h3>Test Case</h3>
-          <p>
-            input {f(tc[0].input)}
-            <br />
-            output {f(tc[0].output)}
-          </p>
-        </>
-      );
-    } else {
-      return <></>;
-    }
-  }, [tronObj.tronWeb]);
 
-  useEffect(() => {
     async function fetchQuestionInfo() {
-      if (tronObj && tronObj.tronWeb && verifierObj) {
+      if (tronObj && tronObj.tronWeb) {
         setLoading(true);
         const tronWeb = tronObj.tronWeb;
         try {
-          const questionCountHex = await triggerConstant(verifierObj, "getQuestionCount");
+          let verifier = await tronWeb.contract().at(verifierAddr);
+          setVerifierObj(verifier);
+          const questionCountHex = await triggerConstant(verifier, "getQuestionCount");
           const cnt = parseInt(tronWeb.toDecimal(questionCountHex));
           if (cnt > 0) {
             if (checkQuestionId(questionId, cnt)) {
-              const winner = await triggerConstant(verifierObj, "winner", questionId);
-              const winnerPrize = await triggerConstant(verifierObj, "prizePool", questionId, 0);
-              const questionOwnerPrize = await triggerConstant(verifierObj, "prizePool", questionId, 1);
-              const questionHex = await triggerConstant(verifierObj, "registeredQuestionList", questionId);
+              const winner = await triggerConstant(verifier, "winner", questionId);
+              const winnerPrize = await triggerConstant(verifier, "prizePool", questionId, 0);
+              const questionOwnerPrize = await triggerConstant(verifier, "prizePool", questionId, 1);
+              const questionHex = await triggerConstant(verifier, "registeredQuestionList", questionId);
               let questionObj = await tronWeb.contract().at(questionHex);
               const title = await triggerConstant(questionObj, "title");
               const desc = await triggerConstant(questionObj, "description");
@@ -131,7 +122,7 @@ const Question = () => {
     }
 
     fetchQuestionInfo();
-  }, [buildFirstTestCase, dispatch, questionId, testCaseAbi, tronObj, verifierAddr, verifierObj]);
+  }, [dispatch, questionId, testCaseAbi, tronObj, verifierAddr]);
 
   const handleVerify = async () => {
     if (tronObj && tronObj.tronWeb && verifierObj) {
@@ -207,18 +198,55 @@ const Question = () => {
     }
   };
 
-  const buildQuestionTitle = () => {
-    let t = "";
+
+  const questionBox = () => {
+    const buildQuestionTitle = () => {
+      let t = "";
+      if (questionInfo.questionId) {
+        t = questionInfo.questionId + ". ";
+      }
+
+      if (questionInfo.title) {
+        t = t + questionInfo.title;
+      }
+
+      return t;
+    };
+
     if (questionInfo && questionInfo.questionId) {
-      t = questionInfo.questionId + ". ";
+      return (
+        <div className="question-box">
+          <div className="question-title">
+            <h2 className="question-title-text">{buildQuestionTitle()}</h2>
+          </div>
+          <div className="question-description">
+            <p className="question-description-text">
+              {questionInfo.description}
+            </p>
+          </div>
+          <div className="question-testcases">
+            {questionInfo.firstTestCase}
+          </div>
+          <div className="code-answer">
+            <Button
+              type="primary"
+              className="btn"
+              icon={<CodeOutlined />}
+              onClick={() =>
+                window.open(
+                  "https://tronide.io/#version=soljson_v0.8.6+commit.0e36fba.js&optimize=false&runs=200&gist=9ec9627ea8d2878bc500c9f06676ade3",
+                  "_blank"
+                )
+              }
+            >
+              Code Answer
+            </Button>
+          </div>
+        </div>);
+    } else {
+      return <></>;
     }
-
-    if (questionInfo && questionInfo.title) {
-      t = t + questionInfo.title;
-    }
-
-    return t;
-  };
+  }
 
   return (
     <>
@@ -228,34 +256,7 @@ const Question = () => {
             <Spin />
           </div>
         ) : (
-          <div className="question-box">
-            <div className="question-title">
-              <h2 className="question-title-text">{buildQuestionTitle()}</h2>
-            </div>
-            <div className="question-description">
-              <p className="question-description-text">
-                {questionInfo && questionInfo.description && questionInfo.description}
-              </p>
-            </div>
-            <div className="question-testcases">
-              {questionInfo && questionInfo.firstTestCase && questionInfo.firstTestCase}
-            </div>
-            <div className="code-answer">
-              <Button
-                type="primary"
-                className="btn"
-                icon={<CodeOutlined />}
-                onClick={() =>
-                  window.open(
-                    "https://tronide.io/#version=soljson_v0.8.6+commit.0e36fba.js&optimize=false&runs=200&gist=9ec9627ea8d2878bc500c9f06676ade3",
-                    "_blank"
-                  )
-                }
-              >
-                Code Answer
-              </Button>
-            </div>
-          </div>
+          questionBox()
         )}
       </div>
       <div className="group-line"></div>

@@ -19,32 +19,21 @@ const QuestionList = () => {
   const [callValue, setCallValue] = useState(100);
 
   useEffect(() => {
-    async function initVerifier() {
+    const fetchQuestionList = async () => {
       if (tronObj && tronObj.tronWeb) {
+        setLoading(true);
+        const tronWeb = tronObj.tronWeb;
+        let tmpList = [];
         try {
-          const tronWeb = tronObj.tronWeb;
           let verifier = await tronWeb.contract().at(verifierAddr);
           const questionCountHex = await triggerConstant(verifier, "getQuestionCount");
           const cnt = parseInt(tronWeb.toDecimal(questionCountHex));
           dispatch(setQuestionCount(cnt));
           setVerifierObj(verifier);
-        } catch (err) {
-          console.error("iniVerifier", err);
-        }
-      }
-    }
-    initVerifier();
-  }, [dispatch, tronObj, verifierAddr]);
 
-  useEffect(() => {
-    const fetchQuestionList = async () => {
-      if (tronObj && tronObj.tronWeb && verifierObj) {
-        setLoading(true);
-        let tmpList = [];
-        try {
-          for (let i = items.length; i < questionCount && items.length < questionCount; i++) {
-            const winner = await triggerConstant(verifierObj, "winner", i);
-            const questionHex = await triggerConstant(verifierObj, "registeredQuestionList", i);
+          for (let i = items.length; i < cnt && items.length < cnt; i++) {
+            const winner = await triggerConstant(verifier, "winner", i);
+            const questionHex = await triggerConstant(verifier, "registeredQuestionList", i);
             let questionObj = await tronObj.tronWeb.contract().at(questionHex);
             const title = await triggerConstant(questionObj, "title");
             console.log("title: " + title);
@@ -61,7 +50,7 @@ const QuestionList = () => {
       }
     };
     fetchQuestionList();
-  }, [items.length, questionCount, tronObj, verifierObj]);
+  }, [dispatch, items.length, tronObj, verifierAddr]);
 
   const handleRegisterQuestion = async () => {
     if (tronObj && tronObj.tronWeb && verifierObj) {
