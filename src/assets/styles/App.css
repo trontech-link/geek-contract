@@ -47,7 +47,6 @@
 }
 
 .group-line {
-  display: flex;
   width: 0.5rem;
   justify-content: center;
   align-items: center;

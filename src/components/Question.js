@@ -250,7 +250,7 @@ const Question = () => {
 
   return (
     <>
-      <div className="left">
+      <div className="left flex">
         {loading ? (
           <div className="question-box-spin">
             <Spin />
@@ -259,8 +259,8 @@ const Question = () => {
           questionBox()
         )}
       </div>
-      <div className="group-line"></div>
-      <div className="right">
+      <div className="group-line flex"></div>
+      <div className="right flex">
         <div className="verify-box">
           <Form name="basic" className="form" labelCol={{ span: 5 }} wrapperCol={{ span: 16 }}>
             <Form.Item label="Answer Address">

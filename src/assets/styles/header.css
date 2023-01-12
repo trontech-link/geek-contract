@@ -10,7 +10,7 @@
 
 
 .header-left {
-    width: 19rem;
+    flex-basis: 19rem;
 }
 
 .header-left > .tron-logo {
@@ -23,6 +23,7 @@
 
 .header-center {
     align-items: center;
+    margin: auto;
 }
 
 .header-center > .question-list {
@@ -34,8 +35,10 @@
 }
 
 .header-right {
-    width: 19rem;
+    flex-basis: 19rem;
 }
 
 .header-right > .connect-wallet {
+    display: flex;
+    margin-left: auto;
 }
