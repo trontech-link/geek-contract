@@ -185,7 +185,7 @@ const AppHeader = () => {
       <div className="flex header-left">
         <img src={tronLogo} className="tron-logo" alt="" onClick={() => navigate("/")} />
       </div>
-      {matchQuestion ? (
+      {matchQuestion && (
         <div className="flex header-center">
           <Button onClick={previousQuestion}>
             <LeftOutlined />
@@ -199,8 +199,6 @@ const AppHeader = () => {
             <RightOutlined />
           </Button>
         </div>
-      ) : (
-        <></>
       )}
       <div className="flex header-right">
         <Button className="connect-wallet" onClick={initTronLinkWallet}>

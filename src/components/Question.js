@@ -55,73 +55,71 @@ const Question = () => {
     };
 
     async function fetchQuestionInfo() {
-      if (tronObj && tronObj.tronWeb) {
-        setLoading(true);
-        const tronWeb = tronObj.tronWeb;
-        try {
-          let verifier = await tronWeb.contract().at(verifierAddr);
-          setVerifierObj(verifier);
-          const questionCountHex = await triggerConstant(verifier, "getQuestionCount");
-          const cnt = parseInt(tronWeb.toDecimal(questionCountHex));
-          if (cnt > 0) {
-            if (checkQuestionId(questionId, cnt)) {
-              const winner = await triggerConstant(verifier, "winner", questionId);
-              const winnerPrize = await triggerConstant(verifier, "prizePool", questionId, 0);
-              const questionOwnerPrize = await triggerConstant(verifier, "prizePool", questionId, 1);
-              const questionHex = await triggerConstant(verifier, "registeredQuestionList", questionId);
-              let questionObj = await tronWeb.contract().at(questionHex);
-              const title = await triggerConstant(questionObj, "title");
-              const desc = await triggerConstant(questionObj, "description");
+      setLoading(true);
+      const tronWeb = tronObj.tronWeb;
+      try {
+        let verifier = await tronWeb.contract().at(verifierAddr);
+        setVerifierObj(verifier);
+        const questionCountHex = await triggerConstant(verifier, "getQuestionCount");
+        const cnt = parseInt(tronWeb.toDecimal(questionCountHex));
+        if (cnt > 0) {
+          if (checkQuestionId(questionId, cnt)) {
+            const winner = await triggerConstant(verifier, "winner", questionId);
+            const winnerPrize = await triggerConstant(verifier, "prizePool", questionId, 0);
+            const questionOwnerPrize = await triggerConstant(verifier, "prizePool", questionId, 1);
+            const questionHex = await triggerConstant(verifier, "registeredQuestionList", questionId);
+            let questionObj = await tronWeb.contract().at(questionHex);
+            const title = await triggerConstant(questionObj, "title");
+            const desc = await triggerConstant(questionObj, "description");
 
-              // fetch question test cases
-              let firstTestCase;
-              const testCaseCount = await triggerConstant(questionObj, "testCaseCount");
-              const tcCnt = parseInt(tronWeb.toDecimal(testCaseCount));
-              if (tcCnt < 1) {
-                console.warn(`empty test cases of question ${questionId}`);
-              } else {
-                const tcHex = await triggerConstant(questionObj, "getTestCasesById", 0);
-                const inputTypeHex = await triggerConstant(questionObj, "inputType");
-                const outputTypeHex = await triggerConstant(questionObj, "outputType");
-                let tcAbi = testCaseAbi.replace("inputType", inputTypeHex).replace("outputType", outputTypeHex);
-                console.log(
-                  "tcAbi=",
-                  tcAbi,
-                  "inputTypeHex=",
-                  inputTypeHex,
-                  "outputTypeHex=",
-                  outputTypeHex,
-                  "tcHex=",
-                  tcHex
-                );
-                let tc = tronWeb.utils.abi.decodeParams(JSON.parse(tcAbi), tcHex);
-                firstTestCase = buildFirstTestCase(tc);
-              }
-              setQuestionInfo({
-                winner: tronWeb.address.fromHex(winner),
-                winnerPrize: tronWeb.toDecimal(winnerPrize),
-                questionOwnerPrize: tronWeb.toDecimal(questionOwnerPrize),
-                questionId: questionId,
-                questionAddress: {
-                  hex: questionHex,
-                  base58: tronWeb.address.fromHex(questionHex),
-                },
-                title: title,
-                description: desc,
-                firstTestCase: firstTestCase,
-              });
+            // fetch question test cases
+            let firstTestCase;
+            const testCaseCount = await triggerConstant(questionObj, "testCaseCount");
+            const tcCnt = parseInt(tronWeb.toDecimal(testCaseCount));
+            if (tcCnt < 1) {
+              console.warn(`empty test cases of question ${questionId}`);
+            } else {
+              const tcHex = await triggerConstant(questionObj, "getTestCasesById", 0);
+              const inputTypeHex = await triggerConstant(questionObj, "inputType");
+              const outputTypeHex = await triggerConstant(questionObj, "outputType");
+              let tcAbi = testCaseAbi.replace("inputType", inputTypeHex).replace("outputType", outputTypeHex);
+              console.log(
+                "tcAbi=",
+                tcAbi,
+                "inputTypeHex=",
+                inputTypeHex,
+                "outputTypeHex=",
+                outputTypeHex,
+                "tcHex=",
+                tcHex
+              );
+              let tc = tronWeb.utils.abi.decodeParams(JSON.parse(tcAbi), tcHex);
+              firstTestCase = buildFirstTestCase(tc);
             }
-            dispatch(setQuestionCount(cnt));
+            setQuestionInfo({
+              winner: tronWeb.address.fromHex(winner),
+              winnerPrize: tronWeb.toDecimal(winnerPrize),
+              questionOwnerPrize: tronWeb.toDecimal(questionOwnerPrize),
+              questionId: questionId,
+              questionAddress: {
+                hex: questionHex,
+                base58: tronWeb.address.fromHex(questionHex),
+              },
+              title: title,
+              description: desc,
+              firstTestCase: firstTestCase,
+            });
           }
-          setLoading(false);
-        } catch (err) {
-          console.log("fetchQuestionInfo", err);
-          setLoading(false);
+          dispatch(setQuestionCount(cnt));
         }
+        setLoading(false);
+      } catch (err) {
+        console.log("fetchQuestionInfo", err);
+        setLoading(false);
       }
     }
 
-    fetchQuestionInfo();
+    tronObj && tronObj.tronWeb && fetchQuestionInfo();
   }, [dispatch, questionId, testCaseAbi, tronObj, verifierAddr]);
 
   const handleVerify = async () => {

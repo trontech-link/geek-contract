@@ -10,7 +10,6 @@ import { triggerConstant } from "../utils/commonUtils";
 const QuestionList = () => {
   const dispatch = useDispatch();
   let tronObj = useSelector((state) => state.rooter.tronObj);
-  let questionCount = useSelector((state) => state.rooter.questionCount);
   const verifierAddr = process.env.REACT_APP_verifier;
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -20,36 +19,34 @@ const QuestionList = () => {
 
   useEffect(() => {
     const fetchQuestionList = async () => {
-      if (tronObj && tronObj.tronWeb) {
-        setLoading(true);
-        const tronWeb = tronObj.tronWeb;
-        let tmpList = [];
-        try {
-          let verifier = await tronWeb.contract().at(verifierAddr);
-          const questionCountHex = await triggerConstant(verifier, "getQuestionCount");
-          const cnt = parseInt(tronWeb.toDecimal(questionCountHex));
-          dispatch(setQuestionCount(cnt));
-          setVerifierObj(verifier);
+      setLoading(true);
+      const tronWeb = tronObj.tronWeb;
+      let tmpList = [];
+      try {
+        let verifier = await tronWeb.contract().at(verifierAddr);
+        const questionCountHex = await triggerConstant(verifier, "getQuestionCount");
+        const cnt = parseInt(tronWeb.toDecimal(questionCountHex));
+        dispatch(setQuestionCount(cnt));
+        setVerifierObj(verifier);
 
-          for (let i = items.length; i < cnt && items.length < cnt; i++) {
-            const winner = await triggerConstant(verifier, "winner", i);
-            const questionHex = await triggerConstant(verifier, "registeredQuestionList", i);
-            let questionObj = await tronObj.tronWeb.contract().at(questionHex);
-            const title = await triggerConstant(questionObj, "title");
-            console.log("title: " + title);
-            const desc = await triggerConstant(questionObj, "description");
-            console.log("desc: " + desc);
-            tmpList.push({ index: i, title: `${i}. ${title}`, desc: desc, winner: winner });
-          }
-          setItems((items) => [...items, ...tmpList]);
-          setLoading(false);
-        } catch (err) {
-          console.error("fetchQuestionList", err);
-          setLoading(false);
+        for (let i = items.length; i < cnt && items.length < cnt; i++) {
+          const winner = await triggerConstant(verifier, "winner", i);
+          const questionHex = await triggerConstant(verifier, "registeredQuestionList", i);
+          let questionObj = await tronObj.tronWeb.contract().at(questionHex);
+          const title = await triggerConstant(questionObj, "title");
+          console.log("title: " + title);
+          const desc = await triggerConstant(questionObj, "description");
+          console.log("desc: " + desc);
+          tmpList.push({ index: i, title: `${i}. ${title}`, desc: desc, winner: winner });
         }
+        setLoading(false);
+        setItems((items) => [...items, ...tmpList]);
+      } catch (err) {
+        console.error("fetchQuestionList", err);
+        setLoading(false);
       }
     };
-    fetchQuestionList();
+    tronObj && tronObj.tronWeb && fetchQuestionList();
   }, [dispatch, items.length, tronObj, verifierAddr]);
 
   const handleRegisterQuestion = async () => {
@@ -85,7 +82,7 @@ const QuestionList = () => {
       title: "Status",
       dataIndex: "winner",
       key: "winner",
-      // width: 10,
+      width: '40%',
       render: (winner) => {
         if (winner && winner !== "410000000000000000000000000000000000000000") {
           return <TrophyFilled style={{ color: "#FFD700" }} />;
