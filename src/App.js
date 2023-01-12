@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route, HashRouter } from "react-router-dom";
+import { Routes, Route, BrowserRouter } from "react-router-dom";
 import './assets/styles/App.css';
 import Question from './components/Question';
 import Layout from 'antd/es/layout/layout';
@@ -9,7 +9,7 @@ import PageNotFound from './components/PageNotFound';
 
 function App() {
   return (
-    <HashRouter>
+    <BrowserRouter basename='geek-contract'>
       <Layout>
         <AppHeader />
         <div className="main flex">
@@ -20,7 +20,7 @@ function App() {
           </Routes>
         </div>
       </Layout>
-    </HashRouter>
+    </BrowserRouter>
   );
 }
 
