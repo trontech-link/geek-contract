@@ -23,7 +23,7 @@ const Question = () => {
 
   useEffect(() => {
     dispatch(setCurrentQuestion(questionId));
-  })
+  }, [dispatch, questionId])
 
   useEffect(() => {
     const buildFirstTestCase = (tc) => {

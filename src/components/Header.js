@@ -160,7 +160,7 @@ const AppHeader = () => {
     if (!connectStatus) {
       initTronLinkWallet();
     }
-  });
+  }, [connectStatus]);
 
   const previousQuestion = () => {
     console.log("previousQuestion", currentQuestion);
