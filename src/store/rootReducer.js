@@ -5,6 +5,7 @@ const initialState = {
   connectStatus: false,
   currentAccount: "",
   questionCount: 0,
+  currentQuestion: 0,
   firstQuestionId: 0,
   lastQuestionId: 0,
 };
@@ -27,13 +28,16 @@ export const rooterSlice = createSlice({
       state.questionCount = cnt;
       state.lastQuestionId = cnt > 1 ? cnt - 1 : 0;
     },
+    setCurrentQuestion: (state, action) => {
+      state.currentQuestion = action.payload;
+    },
     setFirstQuestionId: (state, action) => {
       state.firstQuestionId = action.payload;
     },
   },
 });
 
-export const { setTronObj, setConnectStatus, setCurrentAccount, setQuestionCount, setFirstQuestionId } =
+export const { setTronObj, setConnectStatus, setCurrentAccount, setQuestionCount, setCurrentQuestion, setFirstQuestionId } =
   rooterSlice.actions;
 
 export default rooterSlice.reducer;

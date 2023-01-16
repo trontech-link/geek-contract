@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useParams, useNavigate, useMatch } from "react-router-dom";
+import { useNavigate, useMatch } from "react-router-dom";
 import { message, Button } from "antd";
 import { LeftOutlined, RightOutlined, MenuOutlined } from "@ant-design/icons";
 import tronLogo from "../assets/images/tron.svg";
@@ -11,9 +11,9 @@ const AppHeader = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const matchQuestion = useMatch("/questions/:questionId");
-  const { questionId } = useParams();
   const currentAccount = useSelector((state) => state.rooter.currentAccount);
   const connectStatus = useSelector((state) => state.rooter.connectStatus);
+  const currentQuestion = useSelector((state) => state.rooter.currentQuestion);
   const firstQuestion = useSelector((state) => state.rooter.firstQuestionId);
   const lastQuestion = useSelector((state) => state.rooter.lastQuestionId);
 
@@ -27,7 +27,7 @@ const AppHeader = () => {
       dispatch(setConnectStatus(true));
       const account = tronWeb.defaultAddress.base58;
       dispatch(setCurrentAccount(account));
-      console.log("currentAccount=" + account);
+      console.log("currentAccount=", account);
     };
 
     try {
@@ -160,19 +160,20 @@ const AppHeader = () => {
     if (!connectStatus) {
       initTronLinkWallet();
     }
-  });
+  }, [connectStatus]);
 
   const previousQuestion = () => {
-    if (questionId > firstQuestion) {
-      const prevId = parseInt(questionId) - 1;
+    console.log("previousQuestion", currentQuestion);
+    if (currentQuestion > firstQuestion) {
+      const prevId = parseInt(currentQuestion) - 1;
       navigate(`/questions/${prevId}`);
     } else {
       message.info("it's first question!");
     }
   };
   const nextQuestion = () => {
-    if (questionId < lastQuestion) {
-      const nextId = parseInt(questionId) + 1;
+    if (currentQuestion < lastQuestion) {
+      const nextId = parseInt(currentQuestion) + 1;
       navigate(`/questions/${nextId}`);
     } else {
       message.info("it's last question!");
@@ -184,7 +185,7 @@ const AppHeader = () => {
       <div className="flex header-left">
         <img src={tronLogo} className="tron-logo" alt="" onClick={() => navigate("/")} />
       </div>
-      {matchQuestion ? (
+      {matchQuestion && (
         <div className="flex header-center">
           <Button onClick={previousQuestion}>
             <LeftOutlined />
@@ -198,8 +199,6 @@ const AppHeader = () => {
             <RightOutlined />
           </Button>
         </div>
-      ) : (
-        <></>
       )}
       <div className="flex header-right">
         <Button className="connect-wallet" onClick={initTronLinkWallet}>
